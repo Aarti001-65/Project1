@@ -1,6 +1,5 @@
 # ==========================================
 # SMART EXAM PORTAL
-# (Online Tests, MCQs, Scores & Results)
 # ==========================================
 
 questions = [
@@ -21,61 +20,71 @@ questions = [
     }
 ]
 
-# Function to conduct exam
+# Second Dictionary
+student = {
+    "roll_no": 0,
+    "name": "",
+    "score": 0,
+    "percentage": 0,
+    "exam_date": ""
+}
+
+def get_status(percentage):
+    if percentage >= 40:
+        return "PASS"
+    else:
+        return "FAIL"
+
 def start_exam():
     score = 0
 
-    print("\n===================================")
-    print("      SMART EXAM PORTAL ")
-    print("===================================")
+    print("\n===== SMART EXAM PORTAL =====")
 
-    name = input("Enter Student Name: ")
+    # Student Details
+    student["roll_no"] = int(input("Enter Roll No: "))
+    student["name"] = input("Enter Student Name: ")
+    student["exam_date"] = input("Enter Exam Date (DD-MM-YYYY): ")
 
-    for i, q in enumerate(questions, start=1):
-        print("\n-----------------------------------")
-        print("Question", i)
+    question_no = 1
+
+    for q in questions:
+        print("\nQuestion", question_no)
         print(q["question"])
 
-        for j, option in enumerate(q["options"], start=1):
-            print(j, ".", option)
+        option_no = 1
+        for option in q["options"]:
+            print(option_no, ".", option)
+            option_no += 1
 
         choice = int(input("Enter Your Choice (1-4): "))
 
         if choice == q["answer"]:
-            print(" Correct Answer")
+            print("Correct Answer")
             score += 1
         else:
-            print(" Wrong Answer")
+            print("Wrong Answer")
+            print("Correct Answer is:",
+                  q["options"][q["answer"] - 1])
 
-    return name, score
+        question_no += 1
 
-# Function to show result
-def show_result(name, score):
+    student["score"] = score
+
+def show_result():
     total = len(questions)
-    percentage = (score / total) * 100
 
-    print("\n===================================")
-    print("           EXAM RESULT")
-    print("===================================")
-    print("Student Name :", name)
+    student["percentage"] = round(
+        (student["score"] / total) * 100, 2
+    )
+
+    print("\n===== EXAM RESULT =====")
+    print("Roll No :", student["roll_no"])
+    print("Student Name :", student["name"])
+    print("Exam Date :", student["exam_date"])
     print("Total Questions :", total)
-    print("Correct Answers :", score)
-    print("Percentage :", round(percentage, 2), "%")
+    print("Correct Answers :", student["score"])
+    print("Percentage :", student["percentage"], "%")
+    print("Status :", get_status(student["percentage"]))
 
-    if percentage >= 80:
-        print("Grade : A+")
-    elif percentage >= 60:
-        print("Grade : A")
-    elif percentage >= 40:
-        print("Grade : B")
-    else:
-        print("Grade : C")
-
-    if percentage >= 40:
-        print(" RESULT : PASS")
-    else:
-        print(" RESULT : FAIL")
-
-# Main Program
-student_name, marks = start_exam()
-show_result(student_name, marks)
+start_exam()
+show_result()
