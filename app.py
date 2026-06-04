@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 app = Flask(__name__)
 stud = [
     {"name":"aarti","roll no":1,"marks":85},
@@ -8,17 +8,15 @@ stud = [
 
 @app.route("/")
 def home():
-    return '<h1>Welcome to My project</h1>'
+    return  render_template('home.html')
 @app.route("/about")
 def about():
-    return '<h1>about us</h1><p>This is a college management system.</p>'
+    return render_template('about.html')
 @app.route("/students")
 def students_list():
-    html = '<h1>Students List</h1><ul>'
-    for student in students:
-        html += f"<li>{student['name']} - Roll No: {student['roll no']} - Marks: {student['marks']}</li>"
-    html += '</ul>'
-    return html
+    return render_template('students.html', students=stud)
+
 
 if __name__ == "__main__":
+    print("Inside main ")
     app.run(debug=True)

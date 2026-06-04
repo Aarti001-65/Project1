@@ -1,7 +1,8 @@
+from flask import Flask
+app = Flask(__name__)
 # ==========================================
 # SMART EXAM PORTAL
 # ==========================================
-
 questions = [
     {
         "question": "Python is a __ language?",
@@ -20,13 +21,12 @@ questions = [
     }
 ]
 
-# Second Dictionary
 student = {
-    "roll_no": 0,
-    "name": "",
-    "score": 0,
-    "percentage": 0,
-    "exam_date": ""
+    "roll_no": 101,
+    "name": "Rahul",
+    "score": 2,
+    "percentage": 66.67,
+    "exam_date": "03-06-2026"
 }
 
 def get_status(percentage):
@@ -35,56 +35,48 @@ def get_status(percentage):
     else:
         return "FAIL"
 
-def start_exam():
-    score = 0
 
-    print("\n===== SMART EXAM PORTAL =====")
+# Route 1 : Home Page
+@app.route("/")
+def home():
+    return """
+    <h1>SMART EXAM PORTAL</h1>
+    <p>This project is used to conduct exams and display student results.</p>
 
-    # Student Details
-    student["roll_no"] = int(input("Enter Roll No: "))
-    student["name"] = input("Enter Student Name: ")
-    student["exam_date"] = input("Enter Exam Date (DD-MM-YYYY): ")
+    <a href="/records">View Student Record</a><br><br>
 
-    question_no = 1
+    <a href="/questions">View Questions</a>
+    """
+# Route 2 : Records Page
+@app.route("/records")
+def records():
+    return f"""
+    <h1>Student Record</h1>
+
+    <p><b>Roll No:</b> {student['roll_no']}</p>
+    <p><b>Name:</b> {student['name']}</p>
+    <p><b>Score:</b> {student['score']}</p>
+    <p><b>Percentage:</b> {student['percentage']}%</p>
+    <p><b>Exam Date:</b> {student['exam_date']}</p>
+    <p><b>Status:</b> {get_status(student['percentage'])}</p>
+    """
+# Route 3 : Questions Page (Extra Route)
+@app.route("/questions")
+def show_questions():
+
+    output = "<h1>Exam Questions</h1>"
+
+    q_no = 1
 
     for q in questions:
-        print("\nQuestion", question_no)
-        print(q["question"])
+        output += f"<h3>Question {q_no}: {q['question']}</h3>"
 
-        option_no = 1
         for option in q["options"]:
-            print(option_no, ".", option)
-            option_no += 1
+            output += f"<li>{option}</li>"
 
-        choice = int(input("Enter Your Choice (1-4): "))
+        q_no += 1
 
-        if choice == q["answer"]:
-            print("Correct Answer")
-            score += 1
-        else:
-            print("Wrong Answer")
-            print("Correct Answer is:",
-                  q["options"][q["answer"] - 1])
+    return output
 
-        question_no += 1
-
-    student["score"] = score
-
-def show_result():
-    total = len(questions)
-
-    student["percentage"] = round(
-        (student["score"] / total) * 100, 2
-    )
-
-    print("\n===== EXAM RESULT =====")
-    print("Roll No :", student["roll_no"])
-    print("Student Name :", student["name"])
-    print("Exam Date :", student["exam_date"])
-    print("Total Questions :", total)
-    print("Correct Answers :", student["score"])
-    print("Percentage :", student["percentage"], "%")
-    print("Status :", get_status(student["percentage"]))
-
-start_exam()
-show_result()
+if __name__ == "__main__":
+    app.run(debug=True)

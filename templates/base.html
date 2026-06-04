@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            {%block title%}College portal{%endblock%}
+        </title>
+    </head>
+    <body>
+    <nav>
+        <a href="{{ url_for('home') }}">HOME  </a>
+        <a href="{{ url_for('students') }}">HOME  </a>
+        <a href="{{ url_for('about') }}">HOME  </a>
+    </nav>
+    <hr>
+    {% block content %}
+    {% endblock%}
+</hr>
+<small>
+    College Portal -Built with Flask Python
+</small>
+    </body>
+</html>
