@@ -2,18 +2,55 @@
 
 {% block content %}
 
-<h2>Welcome to Smart Exam Portal</h2>
+<h2 class="text-center mb-4">
+    Welcome to Smart Exam Portal
+</h2>
 
-<p>
-This project is used to conduct online exams and display student records.
-</p>
+<div class="row">
 
-<ul>
-    <li>Online MCQ Tests</li>
-    <li>Student Records</li>
-    <li>Score Calculation</li>
-    <li>Percentage Calculation</li>
-    <li>Pass / Fail Result</li>
-</ul>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Total Students</h5>
+                <span class="badge bg-primary">
+                    {{ students|length }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Passed Students</h5>
+                <span class="badge bg-success">2</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Failed Students</h5>
+                <span class="badge bg-danger">1</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mt-4 shadow">
+    <div class="card-body">
+        <h4>Project Features</h4>
+
+        <ul>
+            <li>Online MCQ Tests</li>
+            <li>Student Records</li>
+            <li>Score Calculation</li>
+            <li>Percentage Calculation</li>
+            <li>Pass / Fail Result</li>
+        </ul>
+    </div>
+</div>
 
 {% endblock %}

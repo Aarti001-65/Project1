@@ -2,27 +2,46 @@
 
 {% block content %}
 
-<h2>Student Records</h2>
+<h2 class="mb-3">Student Records</h2>
 
-<table border="1" cellpadding="8">
+<table class="table table-striped table-hover table-bordered">
 
-<tr>
-    <th>Roll No</th>
-    <th>Name</th>
-    <th>Score</th>
-    <th>Percentage</th>
-    <th>Exam Date</th>
-</tr>
+    <thead class="table-dark">
+        <tr>
+            <th>No</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Exam Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
 
-{% for student in students %}
-<tr>
-    <td>{{ student.roll_no }}</td>
-    <td>{{ student.name }}</td>
-    <td>{{ student.score }}</td>
-    <td>{{ student.percentage }}%</td>
-    <td>{{ student.exam_date }}</td>
-</tr>
-{% endfor %}
+    <tbody>
+
+        {% for student in students %}
+        <tr>
+
+            <td>{{ loop.index }}</td>
+            <td>{{ student.roll_no }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.score }}</td>
+            <td>{{ student.percentage }}%</td>
+            <td>{{ student.exam_date }}</td>
+
+            <td>
+                {% if student.percentage >= 40 %}
+                    <span class="badge bg-success">Pass</span>
+                {% else %}
+                    <span class="badge bg-danger">Fail</span>
+                {% endif %}
+            </td>
+
+        </tr>
+        {% endfor %}
+
+    </tbody>
 
 </table>
 
