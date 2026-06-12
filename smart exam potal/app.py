@@ -1,43 +1,69 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
+from database import get_db, init_db
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
 
-students = [
-    {
-        "roll_no": 101,
-        "name": "Rahul",
-        "score": 2,
-        "percentage": 66.67,
-        "exam_date": "03-06-2026"
-    },
-    {
-        "roll_no": 102,
-        "name": "Priya",
-        "score": 3,
-        "percentage": 100,
-        "exam_date": "03-06-2026"
-    },
-    {
-        "roll_no": 103,
-        "name": "Amit",
-        "score": 1,
-        "percentage": 33.33,
-        "exam_date": "03-06-2026"
-    }
-]
+# Create table
+init_db()
 
-# Home Page
+
+# ==========================
+# HOME PAGE
+# ==========================
+
 @app.route("/")
 def home():
-    return render_template("home.html", students=students)
 
-# Records Page
+    conn = get_db()
+
+    students = conn.execute(
+        "SELECT * FROM students"
+    ).fetchall()
+
+    passed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage >= 40"
+    ).fetchone()[0]
+
+    failed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage < 40"
+    ).fetchone()[0]
+
+    conn.close()
+
+    return render_template(
+        "home.html",
+        students=students,
+        passed_students=passed_students,
+        failed_students=failed_students
+    )
+
+
+# ==========================
+# RECORDS PAGE
+# ==========================
+
 @app.route("/records")
 def records():
-    return render_template("records.html", students=students)
 
-# Add Student Page
+    conn = get_db()
+
+    students = conn.execute(
+        "SELECT * FROM students"
+    ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "records.html",
+        students=students
+    )
+
+
+# ==========================
+# ADD STUDENT
+# ==========================
+
 @app.route("/add", methods=["GET", "POST"])
 def add_students():
 
@@ -46,29 +72,212 @@ def add_students():
         name = request.form["Student_name"]
         marks = request.form["marks"]
 
-        # Validation
         if not name or not marks:
-            flash("All fields are required!", "danger")
-            return redirect(url_for("add_students"))
+            flash(
+                "All fields are required!",
+                "danger"
+            )
+            return redirect(
+                url_for("add_students")
+            )
 
         marks = int(marks)
 
-        new_student = {
-            "roll_no": len(students) + 101,
-            "name": name,
-            "score": marks,
-            "percentage": round((marks / 3) * 100, 2),
-            "exam_date": "07-06-2026"
-        }
+        percentage = marks
 
-        students.append(new_student)
+        conn = get_db()
 
-        flash(f"Student {name} added successfully!", "success")
+        roll_no = conn.execute(
+            "SELECT COUNT(*) FROM students"
+        ).fetchone()[0] + 1
 
-        return redirect(url_for("records"))
+        conn.execute(
+            """
+            INSERT INTO students
+            (roll_no, name, score, percentage, exam_date)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                roll_no,
+                name,
+                marks,
+                percentage,
+                "09-06-2026"
+            )
+        )
 
-    return render_template("add_students.html")
+        conn.commit()
+        conn.close()
 
+        flash(
+            f"Student {name} added successfully!",
+            "success"
+        )
+
+        return redirect(
+            url_for("records")
+        )
+
+    return render_template(
+        "add_students.html"
+    )
+
+
+# ==========================
+# MCQ QUESTIONS
+# ==========================
+
+questions = [
+
+    {
+        "question": "Python is a ____ language?",
+        "options": [
+            "Programming",
+            "Gaming",
+            "Cooking",
+            "Design"
+        ],
+        "answer": "Programming"
+    },
+
+    {
+        "question": "Which keyword is used to create a function?",
+        "options": [
+            "func",
+            "def",
+            "define",
+            "function"
+        ],
+        "answer": "def"
+    },
+
+    {
+        "question": "Flask is a ____ ?",
+        "options": [
+            "Database",
+            "Web Framework",
+            "Browser",
+            "Operating System"
+        ],
+        "answer": "Web Framework"
+    },
+
+    {
+        "question": "HTML stands for?",
+        "options": [
+            "Hyper Text Markup Language",
+            "High Text Machine Language",
+            "Hyper Transfer Markup Language",
+            "None"
+        ],
+        "answer": "Hyper Text Markup Language"
+    },
+
+    {
+        "question": "Which data type stores multiple values?",
+        "options": [
+            "int",
+            "float",
+            "list",
+            "string"
+        ],
+        "answer": "list"
+    }
+
+]
+
+
+# ==========================
+# START EXAM
+# ==========================
+
+@app.route("/exam")
+def exam():
+
+    return render_template(
+        "exam.html",
+        questions=questions
+    )
+
+
+# ==========================
+# SUBMIT EXAM
+# ==========================
+
+@app.route("/submit_exam", methods=["POST"])
+def submit_exam():
+
+    score = 0
+
+    for i, q in enumerate(questions):
+
+        user_answer = request.form.get(
+            f"q{i}"
+        )
+
+        if user_answer == q["answer"]:
+            score += 1
+
+    percentage = round(
+        (score / len(questions)) * 100,
+        2
+    )
+
+    if percentage >= 40:
+        result = "Pass"
+    else:
+        result = "Fail"
+
+    return render_template(
+        "result.html",
+        score=score,
+        percentage=percentage,
+        result=result
+    )
+# DELETE - Remove by Roll No
+@app.route("/delete/<int:roll_no>")
+def delete_student(roll_no):
+
+    conn = get_db()
+
+    # First check if student exists
+    student = conn.execute(
+        "SELECT * FROM students WHERE roll_no = ?",
+        (roll_no,)
+    ).fetchone()
+
+    if student is None:
+
+        conn.close()
+
+        flash(
+            f"No student found with Roll No {roll_no}!",
+            "danger"
+        )
+
+        return redirect(
+            url_for("records")
+        )
+
+    conn.execute(
+        "DELETE FROM students WHERE roll_no = ?",
+        (roll_no,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        f"Student with Roll No {roll_no} deleted successfully!",
+        "success"
+    )
+
+    return redirect(
+        url_for("records")
+    )
+# ==========================
+# RUN APP
+# ==========================
 
 if __name__ == "__main__":
     app.run(debug=True)
