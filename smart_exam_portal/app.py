@@ -29,13 +29,28 @@ def home():
         "SELECT COUNT(*) FROM students WHERE percentage < 40"
     ).fetchone()[0]
 
+    total_attempts = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    average_score = conn.execute(
+        "SELECT AVG(score) FROM students"
+    ).fetchone()[0]
+
+    highest_score = conn.execute(
+        "SELECT MAX(score) FROM students"
+    ).fetchone()[0]
+
     conn.close()
 
     return render_template(
         "home.html",
         students=students,
         passed_students=passed_students,
-        failed_students=failed_students
+        failed_students=failed_students,
+        total_attempts=total_attempts,
+        average_score=average_score,
+        highest_score=highest_score
     )
 
 
@@ -293,6 +308,33 @@ def search():
         students=conn.execute(''' SELECT*FROM students''').fetchall()
     conn.close()
     return render_template('records.html',students=students,q=q)
+
+#Edit student records
+@app.route("/edit/<int:roll_no>", methods=["GET", "POST"])
+def edit_student(roll_no):
+    conn = get_db()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        score = request.form["score"]
+
+        conn.execute(
+            "UPDATE students SET name=?, score=? WHERE roll_no=?",
+            (name, score, roll_no)
+        )
+        conn.commit()
+        conn.close()
+
+        flash("Student Updated Successfully!", "success")
+        return redirect(url_for("records"))
+
+    student = conn.execute(
+        "SELECT * FROM students WHERE roll_no=?",
+        (roll_no,)
+    ).fetchone()
+
+    conn.close()
+    return render_template("edit.html", student=student)
 
 # ==========================
 # RUN APP

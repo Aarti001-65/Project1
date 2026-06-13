@@ -42,6 +42,38 @@
     </div>
 
 </div>
+<div class="col-md-4 mt-3">
+    <div class="card shadow">
+        <div class="card-body text-center">
+            <h5>Total Attempts</h5>
+            <span class="badge bg-info">
+                {{ total_attempts }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4 mt-3">
+    <div class="card shadow">
+        <div class="card-body text-center">
+            <h5>Average Score</h5>
+            <span class="badge bg-warning text-dark">
+                {{ average_score|round(2) }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4 mt-3">
+    <div class="card shadow">
+        <div class="card-body text-center">
+            <h5>Highest Score</h5>
+            <span class="badge bg-dark">
+                {{ highest_score }}
+            </span>
+        </div>
+    </div>
+</div>
 
 <div class="card mt-4 shadow">
     <div class="card-body">
