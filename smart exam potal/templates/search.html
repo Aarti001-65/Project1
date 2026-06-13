@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Search Students{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Search Results</h2>
+    <a href="{{ url_for('records') }}" class="btn btn-secondary btn-sm ">ALL STUDENTS</a>
+</div>
+
+{% if query %}
+<div class="alert alert-info justify-content-center align-items-center d-flex">
+    <span>
+        <strong>{{ query }}</strong>
+        <strong>{{ students|length }}</strong> results found.
+    </span>
+    <a href="{{url_for('search')}}" class="btn btn-outline-secondary btn-sm ms-3">Clear Search</a>
+</div>
+{% endif %}
+{% endblock %}

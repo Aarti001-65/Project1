@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, session
 from database import get_db, init_db
 
 app = Flask(__name__)
@@ -275,6 +275,25 @@ def delete_student(roll_no):
     return redirect(
         url_for("records")
     )
+#search student 
+@app.route("/search")
+def search():
+    #step-1 -get 
+    q=request.args.get('q','')
+    #request.args GET parameters
+    #q- Form - name='q
+    conn=get_db()
+
+    if q:
+        students=conn.execute(''' SELECT*FROM students
+                              WHERE name LIKE ?
+                              OR roll_no LIKE ?''',
+                              (f'%{q}%',f'%{q}%')).fetchall()
+    else:
+        students=conn.execute(''' SELECT*FROM students''').fetchall()
+    conn.close()
+    return render_template('records.html',students=students,q=q)
+
 # ==========================
 # RUN APP
 # ==========================
