@@ -34,12 +34,10 @@ def home():
     ).fetchone()[0]
 
     average_score = conn.execute(
-        "SELECT AVG(score) FROM students"
-    ).fetchone()[0]
+    "SELECT AVG(score) FROM students").fetchone()[0] or 0
 
     highest_score = conn.execute(
-        "SELECT MAX(score) FROM students"
-    ).fetchone()[0]
+    "SELECT MAX(score) FROM students").fetchone()[0] or 0
 
     conn.close()
 
@@ -78,20 +76,23 @@ def records():
 # ==========================
 # ADD STUDENT
 # ==========================
-
 @app.route("/add", methods=["GET", "POST"])
 def add_students():
 
     if request.method == "POST":
 
+        enrollment_no = request.form["enrollment_no"]
+        password = request.form["password"]
         name = request.form["Student_name"]
         marks = request.form["marks"]
 
-        if not name or not marks:
+        if not enrollment_no or not password or not name or not marks:
+
             flash(
                 "All fields are required!",
                 "danger"
             )
+
             return redirect(
                 url_for("add_students")
             )
@@ -109,11 +110,13 @@ def add_students():
         conn.execute(
             """
             INSERT INTO students
-            (roll_no, name, score, percentage, exam_date)
-            VALUES (?, ?, ?, ?, ?)
+            (roll_no, enrollment_no, password, name, score, percentage, exam_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 roll_no,
+                enrollment_no,
+                password,
                 name,
                 marks,
                 percentage,
@@ -134,8 +137,8 @@ def add_students():
         )
 
     return render_template(
-        "add_students.html"
-    )
+        "add_students.html")
+    
 
 
 # ==========================
@@ -200,20 +203,82 @@ questions = [
     }
 
 ]
+#Login route
+@app.route("/login", methods=["GET", "POST"])
+def login():
 
+    if request.method == "POST":
+
+        enrollment_no = request.form["enrollment_no"]
+        password = request.form["password"]
+
+        conn = get_db()
+
+        student = conn.execute(
+            """
+            SELECT * FROM students
+            WHERE enrollment_no = ?
+            AND password = ?
+            """,
+            (enrollment_no, password)
+        ).fetchone()
+
+        conn.close()
+
+        if student:
+
+            session["student_id"] = student["id"]
+
+            flash(
+                "Login Successful!",
+                "success"
+            )
+
+            return redirect(
+                url_for("exam")
+            )
+
+        flash(
+            "Invalid Enrollment Number or Password",
+            "danger"
+        )
+
+    return render_template("login.html")
 
 # ==========================
 # START EXAM
 # ==========================
-
 @app.route("/exam")
 def exam():
+
+    if "student_id" not in session:
+
+        flash(
+            "Please login first!",
+            "warning"
+        )
+
+        return redirect(
+            url_for("login")
+        )
 
     return render_template(
         "exam.html",
         questions=questions
     )
+@app.route("/logout")
+def logout():
 
+    session.clear()
+
+    flash(
+        "Logged Out Successfully!",
+        "success"
+    )
+
+    return redirect(
+        url_for("login")
+    )
 
 # ==========================
 # SUBMIT EXAM

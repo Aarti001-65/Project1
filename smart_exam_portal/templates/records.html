@@ -16,6 +16,8 @@
             <th>Exam Date</th>
             <th>Status</th>
             <th>Actions</th>
+            <th>Enrollment No</th>
+            <th>Password</th>
         </tr>
     </thead>
 
@@ -30,6 +32,8 @@
             <td>{{ student.score }}</td>
             <td>{{ student.percentage }}%</td>
             <td>{{ student.exam_date }}</td>
+            <td>{{ student.enrollment_no }}</td>
+            <td>{{ student.password }}</td>
 
 <td>
     {% if student.percentage >= 40 %}
