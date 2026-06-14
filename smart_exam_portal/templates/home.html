@@ -5,9 +5,7 @@
 <h2 class="text-center mb-4">
     Welcome to Smart Exam Portal
 </h2>
-
-<div class="row">
-<div class="row g-4"></div>
+<div class="row g-4">
     <div class="col-md-4">
         <div class="card shadow">
             <div class="card-body text-center">
@@ -44,38 +42,40 @@
 </div>
 <div class="row mt-3">
     <div class="col-md-4">
-    <div class="card shadow">
-        <div class="card-body text-center">
-            <h5>Total Attempts</h5>
-            <span class="badge bg-info">
+        <div class="card shadow">
+           <div class="card-body text-center">
+              <h5>Total Attempts</h5>
+              <span class="badge bg-info">
                 {{ total_attempts }}
-            </span>
+               </span>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="col-md-4">
-    <div class="card shadow">
-        <div class="card-body text-center">
-            <h5>Average Score</h5>
-            <span class="badge bg-warning text-dark">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+               <h5>Average Score</h5>
+               <span class="badge bg-warning text-dark">
                 {{ average_score|round(2) }}
-            </span>
+               </span>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="col-md-4">
-    <div class="card shadow">
-        <div class="card-body text-center">
-            <h5>Highest Score</h5>
-            <span class="badge bg-dark">
-                {{ highest_score }}
-            </span>
+
+      <div class="col-md-4">
+           <div class="card shadow">
+                <div class="card-body text-center">
+                     <h5>Highest Score</h5>
+                     <span class="badge bg-dark">
+                      {{ highest_score }}
+                     </span>
+        
+                </div>
+            </div>
         </div>
-    </div>
 </div>
-
 <div class="card mt-4 shadow">
     <div class="card-body">
         <h4>Project Features</h4>

@@ -17,4 +17,36 @@
     <a href="{{url_for('search')}}" class="btn btn-outline-secondary btn-sm ms-3">Clear Search</a>
 </div>
 {% endif %}
+<thead class="table-dark">
+    <tr>
+        <th>Roll No</th>
+        <th>Name</th>
+        <th>Enrollment No</th>
+        <th>Password</th>
+        <th>Score</th>
+        <th>Percentage</th>
+        <th>Status</th>
+    </tr>
+</thead>
+
+<tbody>
+    {% for student in students %}
+    <tr>
+        <td>{{ student.roll_no }}</td>
+        <td>{{ student.name }}</td>
+        <td>{{ student.enrollment_no }}</td>
+        <td>{{ student.password }}</td>
+        <td>{{ student.score }}</td>
+        <td>{{ student.percentage }}%</td>
+
+        <td>
+            {% if student.percentage >= 40 %}
+                <span class="badge bg-success">Pass</span>
+            {% else %}
+                <span class="badge bg-danger">Fail</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
 {% endblock %}

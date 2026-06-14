@@ -314,6 +314,7 @@ def submit_exam():
         percentage=percentage,
         result=result
     )
+
 # DELETE - Remove by Roll No
 @app.route("/delete/<int:roll_no>")
 def delete_student(roll_no):
