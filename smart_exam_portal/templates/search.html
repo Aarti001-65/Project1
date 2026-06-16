@@ -3,50 +3,95 @@
 {% block title %}Search Students{% endblock %}
 
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold">Search Results</h2>
-    <a href="{{ url_for('records') }}" class="btn btn-secondary btn-sm ">ALL STUDENTS</a>
+
+    <a href="{{ url_for('records') }}"
+       class="btn btn-secondary btn-sm">
+        ALL STUDENTS
+    </a>
 </div>
 
 {% if query %}
-<div class="alert alert-info justify-content-center align-items-center d-flex">
+<div class="alert alert-info d-flex justify-content-center align-items-center">
+
     <span>
-        <strong>{{ query }}</strong>
-        <strong>{{ students|length }}</strong> results found.
+        <strong>"{{ query }}"</strong>
+        -
+        <strong>{{ students|length }}</strong>
+        results found.
     </span>
-    <a href="{{url_for('search')}}" class="btn btn-outline-secondary btn-sm ms-3">Clear Search</a>
+
+    <a href="{{ url_for('search') }}"
+       class="btn btn-outline-secondary btn-sm ms-3">
+        Clear Search
+    </a>
+
 </div>
 {% endif %}
-<thead class="table-dark">
-    <tr>
-        <th>Roll No</th>
-        <th>Name</th>
-        <th>Enrollment No</th>
-        <th>Password</th>
-        <th>Score</th>
-        <th>Percentage</th>
-        <th>Status</th>
-    </tr>
-</thead>
 
-<tbody>
-    {% for student in students %}
-    <tr>
-        <td>{{ student.roll_no }}</td>
-        <td>{{ student.name }}</td>
-        <td>{{ student.enrollment_no }}</td>
-        <td>{{ student.password }}</td>
-        <td>{{ student.score }}</td>
-        <td>{{ student.percentage }}%</td>
+{% if students|length == 0 %}
 
-        <td>
-            {% if student.percentage >= 40 %}
-                <span class="badge bg-success">Pass</span>
-            {% else %}
-                <span class="badge bg-danger">Fail</span>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+<div class="alert alert-warning text-center">
+
+    <h5>No Students Found 😔</h5>
+
+    <p>
+        Try another name or roll number.
+    </p>
+
+</div>
+
+{% endif %}
+
+{% if students|length > 0 %}
+
+<table class="table table-striped table-bordered table-hover">
+
+    <thead class="table-dark">
+        <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Enrollment No</th>
+            <th>Password</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for student in students %}
+        <tr>
+
+            <td>{{ student.roll_no }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.enrollment_no }}</td>
+            <td>{{ student.password }}</td>
+            <td>{{ student.score }}</td>
+            <td>{{ student.percentage }}%</td>
+
+            <td>
+                {% if student.percentage >= 40 %}
+                    <span class="badge bg-success">
+                        Pass
+                    </span>
+                {% else %}
+                    <span class="badge bg-danger">
+                        Fail
+                    </span>
+                {% endif %}
+            </td>
+
+        </tr>
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endif %}
+
 {% endblock %}

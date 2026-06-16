@@ -59,11 +59,27 @@ def home():
 @app.route("/records")
 def records():
 
+    status = request.args.get("status", "")
+
     conn = get_db()
 
-    students = conn.execute(
-        "SELECT * FROM students"
-    ).fetchall()
+    if status == "pass":
+
+        students = conn.execute(
+            "SELECT * FROM students WHERE percentage >= 40"
+        ).fetchall()
+
+    elif status == "fail":
+
+        students = conn.execute(
+            "SELECT * FROM students WHERE percentage < 40"
+        ).fetchall()
+
+    else:
+
+        students = conn.execute(
+            "SELECT * FROM students"
+        ).fetchall()
 
     conn.close()
 
@@ -316,7 +332,7 @@ def submit_exam():
     )
 
 # DELETE - Remove by Roll No
-@app.route("/delete/<int:roll_no>")
+@app.route("/delete/<int:roll_no>", methods=["POST"])
 def delete_student(roll_no):
 
     conn = get_db()
@@ -373,7 +389,11 @@ def search():
     else:
         students=conn.execute(''' SELECT*FROM students''').fetchall()
     conn.close()
-    return render_template('records.html',students=students,q=q)
+    return render_template(
+    "search.html",
+    students=students,
+    query=q
+)
 
 #Edit student records
 @app.route("/edit/<int:roll_no>", methods=["GET", "POST"])
