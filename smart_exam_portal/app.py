@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from database import get_db, init_db
+from werkzeug.security import generate_password_hash, check_password_hash   
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
@@ -96,13 +97,11 @@ def records():
 def add_students():
 
     if request.method == "POST":
-
-        enrollment_no = request.form["enrollment_no"]
-        password = request.form["password"]
-        name = request.form["Student_name"]
+        
+        name = request.form["student_name"]
         marks = request.form["marks"]
 
-        if not enrollment_no or not password or not name or not marks:
+        if  not name or not marks:
 
             flash(
                 "All fields are required!",
@@ -126,14 +125,12 @@ def add_students():
         conn.execute(
             """
             INSERT INTO students
-            (roll_no, enrollment_no, password, name, score, percentage, exam_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (roll_no, subject_name, score, percentage, exam_date)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
                 roll_no,
-                enrollment_no,
-                password,
-                name,
+                "Python",  # Replace with actual subject name if available
                 marks,
                 percentage,
                 "09-06-2026"
@@ -219,32 +216,29 @@ questions = [
     }
 
 ]
-#Login route
+# =========================
+# Login route
+# =========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
 
-        enrollment_no = request.form["enrollment_no"]
+        username = request.form["username"]
         password = request.form["password"]
 
         conn = get_db()
 
-        student = conn.execute(
-            """
-            SELECT * FROM students
-            WHERE enrollment_no = ?
-            AND password = ?
-            """,
-            (enrollment_no, password)
+        users = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
         ).fetchone()
 
         conn.close()
 
-        if student:
+        if users and check_password_hash(users["password"], password):
 
-            session["student_id"] = student["id"]
-
+            session["username"] = username
             flash(
                 "Login Successful!",
                 "success"
@@ -253,13 +247,79 @@ def login():
             return redirect(
                 url_for("exam")
             )
-
-        flash(
-            "Invalid Enrollment Number or Password",
+        else:
+            flash(
+            "Invalid Username or Password",
             "danger"
         )
 
     return render_template("login.html")
+# ==========================
+# Register route
+# ==========================
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+        confirm_password = request.form["confirm_password"]
+
+        if password != confirm_password:
+
+            flash(
+                "Passwords do not match!",
+                "danger"
+            )
+
+            return redirect(
+                url_for("register")
+            )
+
+        conn = get_db()
+
+        # Check if user already exists
+        existing_user = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+
+        if existing_user:
+
+            flash(
+                "Username already exists!",
+                "danger"
+            )
+
+            conn.close()
+
+            return redirect(
+                url_for("register")
+            )
+
+        # Hash the password
+        hashed_password = generate_password_hash(password)
+
+        # Insert the new user into the database
+        conn.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (username, hashed_password)
+        )
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            "Registration successful! Please login.",
+            "success"
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template("register.html")
 
 # ==========================
 # START EXAM
@@ -267,7 +327,7 @@ def login():
 @app.route("/exam")
 def exam():
 
-    if "student_id" not in session:
+    if "username" not in session:
 
         flash(
             "Please login first!",
@@ -330,8 +390,9 @@ def submit_exam():
         percentage=percentage,
         result=result
     )
-
+# ==========================
 # DELETE - Remove by Roll No
+# ==========================
 @app.route("/delete/<int:roll_no>", methods=["POST"])
 def delete_student(roll_no):
 
@@ -372,7 +433,9 @@ def delete_student(roll_no):
     return redirect(
         url_for("records")
     )
-#search student 
+# ==========================
+# Search student
+# ==========================
 @app.route("/search")
 def search():
     #step-1 -get 
@@ -394,8 +457,10 @@ def search():
     students=students,
     query=q
 )
+# ==========================
+# Edit student records
+# ==========================
 
-#Edit student records
 @app.route("/edit/<int:roll_no>", methods=["GET", "POST"])
 def edit_student(roll_no):
     conn = get_db()

@@ -6,26 +6,19 @@
 
 <form action="{{ url_for('add_students') }}" method="POST">
 
-    <div class="mb-3">
-        <label class="form-label">Enrollment Number</label>
-        <input type="text"
-               name="enrollment_no"
-               class="form-control"
-               required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input type="password"
-               name="password"
-               class="form-control"
-               required>
-    </div>
+    
 
     <div class="mb-3">
         <label class="form-label">Student Name</label>
         <input type="text"
-               name="Student_name"
+               name="student_name"
+               class="form-control"
+               required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">subject_name</label>
+        <input type="text"
+               name="subject_name"
                class="form-control"
                required>
     </div>
@@ -37,7 +30,7 @@
                class="form-control"
                required>
     </div>
-
+    
     <button type="submit" class="btn btn-success">
         Add Student
     </button>

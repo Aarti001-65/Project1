@@ -13,12 +13,18 @@ def init_db():
 CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     roll_no INTEGER,
-    enrollment_no TEXT UNIQUE,
-    password TEXT,
-    name TEXT,
+    subject_name TEXT,
+    student_name TEXT,
     score INTEGER,
     percentage REAL,
     exam_date TEXT
+)
+""")
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
 )
 """)
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Live Search </title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-light">
+        <div class="container mt-4"></div>
+            <h2 class ="fw-bold mb-4">Student Live Search Demo </h2>
+
+            <!-- Search input -->
+            <input type="text"
+            id ="searchInput"
+            class="form-control mb-3"
+            placeholder = "Type to search...">
+
+            <!-- Table -->
+            <table class ="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll No</th>
+                        <th>Enrollment_no</th>
+                        <th>percentage</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody">
+                    {% for student in students %}
+                    <tr data-name ="{{ student['name']|lower }}">
+                    <tr data-name ="Aarti">
+                        <!-- data-name - JS information  -->
+                        <td>{{ student['name'] }}</td>
+                        <td>{{ student['roll'] }}</td>
+                        <td>{{ student['Enrollment_no'] }}</td>
+                        <td>{{ student['percentage'] }}</td>
+                        <td>Aarti</td>
+                        <td>1</td>
+                        <td>2451029001</td>
+                        <td>88</td>
+                    </tr>
+                    <tr data-name ="Trupti">
+                        <!-- data-name - JS information  -->
+                        <td>Trupti</td>
+                        <td>2</td>
+                        <td>2451029002</td>
+                        <td>96</td>
+                    </tr>
+                    <tr data-name ="Prem">
+                        <!-- data-name - JS information  -->
+                        <td>Prem</td>
+                        <td>3</td>
+                        <td>2451029003</td>
+                        <td>60</td>
+                    </tr>
+                    <tr data-name ="Priya">
+                        <!-- data-name - JS information  -->
+                        <td>Priya</td>
+                        <td>4</td>
+                        <td>2451029004</td>
+                        <td>32</td>
+                    </tr>
+                    <tr data-name ="Divya">
+                        <!-- data-name - JS information  -->
+                        <td>Divya</td>
+                        <td>5</td>
+                        <td>2451029005</td>
+                        <td>30</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <script>
+            const searchInput = document.getElementById('searchInput');
+            const allRows = document.querySelectorAll('#tableBody tr');
+
+            
+        </script>
+            searchInput.addEventListener('keyup', function() {
+                const query = this.value.toLowerCase();
+                allRows.forEach(function(row) {
+                    const name = row.dataset.name;
+
+                    if(name.includes(query)){
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });      
+        </script>   
+    </body>
+</html>
