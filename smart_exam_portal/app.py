@@ -95,13 +95,25 @@ def records():
 # ==========================
 @app.route("/add", methods=["GET", "POST"])
 def add_students():
+    if 'username' not in session:
 
+        flash(
+            "Please login first!",
+            "warning"
+        )
+
+        return redirect(
+            url_for("login")
+        )
     if request.method == "POST":
         
-        name = request.form["student_name"]
+        student_name = request.form["student_name"]
+        roll_number = request.form["roll_number"]
+        subject_name = request.form["subject_name"]
         marks = request.form["marks"]
+        
 
-        if  not name or not marks:
+        if  not student_name or not subject_name or not marks:
 
             flash(
                 "All fields are required!",
@@ -118,22 +130,19 @@ def add_students():
 
         conn = get_db()
 
-        roll_no = conn.execute(
+        roll_number = conn.execute(
             "SELECT COUNT(*) FROM students"
         ).fetchone()[0] + 1
 
         conn.execute(
-            """
-            INSERT INTO students
-            (roll_no, subject_name, score, percentage, exam_date)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+            "INSERT INTO students (roll_number, student_name, subject_name, score, percentage, exam_date) VALUES (?, ?, ?, ?, ?, ?)",
             (
-                roll_no,
-                "Python",  # Replace with actual subject name if available
+                roll_number,
+                student_name,  # Replace with actual student name if available
+                subject_name,  # Replace with actual subject name if available
                 marks,
                 percentage,
-                "09-06-2026"
+                "24/06/2026"  # Replace with actual exam date if available
             )
         )
 
@@ -141,7 +150,7 @@ def add_students():
         conn.close()
 
         flash(
-            f"Student {name} added successfully!",
+            f"Student {student_name} added successfully!",
             "success"
         )
 
@@ -254,6 +263,17 @@ def login():
         )
 
     return render_template("login.html")
+# ===========================
+# logout route
+# ==========================
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash(
+        "Logged Out Successfully!",
+        "success"
+    )
+    return redirect(url_for("login"))
 # ==========================
 # Register route
 # ==========================
@@ -342,18 +362,22 @@ def exam():
         "exam.html",
         questions=questions
     )
-@app.route("/logout")
-def logout():
+@app.route("/exam_instructions")
+def exam_instructions():
 
-    session.clear()
+    if "username" not in session:
 
-    flash(
-        "Logged Out Successfully!",
-        "success"
-    )
+        flash(
+            "Please login first!",
+            "warning"
+        )
 
-    return redirect(
-        url_for("login")
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "exam_instructions.html"
     )
 
 # ==========================
@@ -393,15 +417,21 @@ def submit_exam():
 # ==========================
 # DELETE - Remove by Roll No
 # ==========================
-@app.route("/delete/<int:roll_no>", methods=["POST"])
-def delete_student(roll_no):
+@app.route("/delete/<int:roll_number>", methods=["POST"])
+def delete_student(roll_number):
+   if 'username' not in session:
+    flash(
+        "Please login first!",
+        "warning"
+    )
+    return redirect(url_for("login"))
 
     conn = get_db()
 
     # First check if student exists
     student = conn.execute(
         "SELECT * FROM students WHERE roll_no = ?",
-        (roll_no,)
+        (roll_number,)
     ).fetchone()
 
     if student is None:
@@ -409,7 +439,7 @@ def delete_student(roll_no):
         conn.close()
 
         flash(
-            f"No student found with Roll No {roll_no}!",
+            f"No student found with Roll No {roll_number}!",
             "danger"
         )
 
@@ -419,14 +449,14 @@ def delete_student(roll_no):
 
     conn.execute(
         "DELETE FROM students WHERE roll_no = ?",
-        (roll_no,)
+        (roll_number,)
     )
 
     conn.commit()
     conn.close()
 
     flash(
-        f"Student with Roll No {roll_no} deleted successfully!",
+        f"Student with Roll No {roll_number} deleted successfully!",
         "success"
     )
 
@@ -446,8 +476,8 @@ def search():
 
     if q:
         students=conn.execute(''' SELECT*FROM students
-                              WHERE name LIKE ?
-                              OR roll_no LIKE ?''',
+                              WHERE student_name LIKE ?
+                              OR roll_number LIKE ?''',
                               (f'%{q}%',f'%{q}%')).fetchall()
     else:
         students=conn.execute(''' SELECT*FROM students''').fetchall()
@@ -461,8 +491,18 @@ def search():
 # Edit student records
 # ==========================
 
-@app.route("/edit/<int:roll_no>", methods=["GET", "POST"])
-def edit_student(roll_no):
+@app.route("/edit/<int:roll_number>", methods=["GET", "POST"])
+def edit_student(roll_number):
+    if 'username' not in session:
+
+        flash(
+            "Please login first!",
+            "warning"
+        )
+
+        return redirect(
+            url_for("login")
+        )
     conn = get_db()
 
     if request.method == "POST":
@@ -471,7 +511,7 @@ def edit_student(roll_no):
 
         conn.execute(
             "UPDATE students SET name=?, score=? WHERE roll_no=?",
-            (name, score, roll_no)
+            (name, score, roll_number)
         )
         conn.commit()
         conn.close()
@@ -481,7 +521,7 @@ def edit_student(roll_no):
 
     student = conn.execute(
         "SELECT * FROM students WHERE roll_no=?",
-        (roll_no,)
+        (roll_number,)
     ).fetchone()
 
     conn.close()

@@ -38,7 +38,7 @@
     <h5>No Students Found 😔</h5>
 
     <p>
-        Try another name or roll number.
+        Try another student_name or roll number.
     </p>
 
 </div>
@@ -51,13 +51,12 @@
 
     <thead class="table-dark">
         <tr>
-            <th>Roll No</th>
-            <th>Name</th>
-            <th>Enrollment No</th>
-            <th>Password</th>
-            <th>Score</th>
-            <th>Percentage</th>
-            <th>Status</th>
+            <th>roll_number</th>
+            <th>student_name</th>
+            <th>subject_name</th>
+            <th>score</th>
+            <th>percentage</th>
+            <th>status</th>
         </tr>
     </thead>
 
@@ -66,12 +65,12 @@
         {% for student in students %}
         <tr>
 
-            <td>{{ student.roll_no }}</td>
-            <td>{{ student.name }}</td>
-            <td>{{ student.enrollment_no }}</td>
-            <td>{{ student.password }}</td>
+            <td>{{ student.roll_number }}</td>
+            <td>{{ student.student_name }}</td>
+            <td>{{ student.subject_name }}</td>
             <td>{{ student.score }}</td>
             <td>{{ student.percentage }}%</td>
+            <td>{{ student.status }}</td>
 
             <td>
                 {% if student.percentage >= 40 %}

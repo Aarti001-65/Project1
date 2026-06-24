@@ -12,7 +12,7 @@ def init_db():
     conn.execute("""
 CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    roll_no INTEGER,
+    roll_number INTEGER,
     subject_name TEXT,
     student_name TEXT,
     score INTEGER,
@@ -27,6 +27,12 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 )
 """)
+    try:
+        conn.execute("""ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'""")
+    except Exception:
+        #column already exists, ignore the error
+        pass
+
 
     conn.commit()
     conn.close()
