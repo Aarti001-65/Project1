@@ -95,16 +95,12 @@ def records():
 # ==========================
 @app.route("/add", methods=["GET", "POST"])
 def add_students():
-    if 'username' not in session:
-
+    if session.get("role") != "admin":
         flash(
-            "Please login first!",
-            "warning"
+            "Admin only! You do not have permission to add students.",
+            "danger"
         )
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("home"))
     if request.method == "POST":
         
         student_name = request.form["student_name"]
@@ -248,6 +244,7 @@ def login():
         if users and check_password_hash(users["password"], password):
 
             session["username"] = username
+            session["role"] = users["role"]
             flash(
                 "Login Successful!",
                 "success"
@@ -269,6 +266,8 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
+    session.pop("username", None)
+    session.pop("role", None)
     flash(
         "Logged Out Successfully!",
         "success"
@@ -419,23 +418,22 @@ def submit_exam():
 # ==========================
 @app.route("/delete/<int:roll_number>", methods=["POST"])
 def delete_student(roll_number):
-   if 'username' not in session:
-    flash(
-        "Please login first!",
-        "warning"
-    )
-    return redirect(url_for("login"))
+
+    if session.get("role") != "admin":
+        flash(
+            "Admin only! You do not have permission to delete students.",
+            "danger"
+        )
+        return redirect(url_for("home"))
 
     conn = get_db()
 
-    # First check if student exists
     student = conn.execute(
-        "SELECT * FROM students WHERE roll_no = ?",
+        "SELECT * FROM students WHERE roll_number = ?",
         (roll_number,)
     ).fetchone()
 
     if student is None:
-
         conn.close()
 
         flash(
@@ -443,12 +441,10 @@ def delete_student(roll_number):
             "danger"
         )
 
-        return redirect(
-            url_for("records")
-        )
+        return redirect(url_for("records"))
 
     conn.execute(
-        "DELETE FROM students WHERE roll_no = ?",
+        "DELETE FROM students WHERE roll_number = ?",
         (roll_number,)
     )
 
@@ -460,73 +456,97 @@ def delete_student(roll_number):
         "success"
     )
 
-    return redirect(
-        url_for("records")
-    )
-# ==========================
-# Search student
-# ==========================
-@app.route("/search")
-def search():
-    #step-1 -get 
-    q=request.args.get('q','')
-    #request.args GET parameters
-    #q- Form - name='q
-    conn=get_db()
-
-    if q:
-        students=conn.execute(''' SELECT*FROM students
-                              WHERE student_name LIKE ?
-                              OR roll_number LIKE ?''',
-                              (f'%{q}%',f'%{q}%')).fetchall()
-    else:
-        students=conn.execute(''' SELECT*FROM students''').fetchall()
-    conn.close()
-    return render_template(
-    "search.html",
-    students=students,
-    query=q
-)
+    return redirect(url_for("records"))
 # ==========================
 # Edit student records
 # ==========================
 
 @app.route("/edit/<int:roll_number>", methods=["GET", "POST"])
 def edit_student(roll_number):
-    if 'username' not in session:
 
+    if session.get("role") != "admin":
         flash(
-            "Please login first!",
-            "warning"
+            "Admin only! You do not have permission to edit students.",
+            "danger"
         )
+        return redirect(url_for("home"))
 
-        return redirect(
-            url_for("login")
-        )
     conn = get_db()
 
     if request.method == "POST":
-        name = request.form["name"]
-        score = request.form["score"]
+
+        student_name = request.form["student_name"]
+        score = int(request.form["score"])
+
+        percentage = score
 
         conn.execute(
-            "UPDATE students SET name=?, score=? WHERE roll_no=?",
-            (name, score, roll_number)
+            """
+            UPDATE students
+            SET student_name = ?, score = ?, percentage = ?
+            WHERE roll_number = ?
+            """,
+            (
+                student_name,
+                score,
+                percentage,
+                roll_number
+            )
         )
+
         conn.commit()
         conn.close()
 
-        flash("Student Updated Successfully!", "success")
+        flash(
+            "Student Updated Successfully!",
+            "success"
+        )
+
         return redirect(url_for("records"))
 
     student = conn.execute(
-        "SELECT * FROM students WHERE roll_no=?",
+        "SELECT * FROM students WHERE roll_number = ?",
         (roll_number,)
     ).fetchone()
 
     conn.close()
-    return render_template("edit.html", student=student)
 
+    return render_template(
+        "edit.html",
+        student=student
+    )
+# ==========================
+# search student by roll number
+# ==========================
+
+@app.route("/search")
+def search():
+
+    q = request.args.get("q", "")
+
+    conn = get_db()
+
+    if q:
+        students = conn.execute(
+            """
+            SELECT * FROM students
+            WHERE student_name LIKE ?
+            OR CAST(roll_number AS TEXT) LIKE ?
+            """,
+            (f"%{q}%", f"%{q}%")
+        ).fetchall()
+    else:
+        students = conn.execute(
+            "SELECT * FROM students"
+        ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "search.html",
+        students=students,
+        query=q
+    )
 # ==========================
 # RUN APP
 # ==========================
