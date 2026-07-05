@@ -18,10 +18,22 @@ def home():
 
     conn = get_db()
 
-    students = conn.execute(
-        "SELECT * FROM students"
-    ).fetchall()
+    # Students with Subject Name (JOIN)
+    students = conn.execute("""
+        SELECT
+            students.id,
+            students.roll_number,
+            students.student_name,
+            students.score,
+            students.percentage,
+            students.exam_date,
+            subjects.name AS subject_name
+        FROM students
+        LEFT JOIN subjects
+        ON students.subject_id = subjects.id
+    """).fetchall()
 
+    # Statistics
     passed_students = conn.execute(
         "SELECT COUNT(*) FROM students WHERE percentage >= 40"
     ).fetchone()[0]
@@ -35,10 +47,12 @@ def home():
     ).fetchone()[0]
 
     average_score = conn.execute(
-    "SELECT AVG(score) FROM students").fetchone()[0] or 0
+        "SELECT AVG(score) FROM students"
+    ).fetchone()[0] or 0
 
     highest_score = conn.execute(
-    "SELECT MAX(score) FROM students").fetchone()[0] or 0
+        "SELECT MAX(score) FROM students"
+    ).fetchone()[0] or 0
 
     conn.close()
 
@@ -66,21 +80,49 @@ def records():
 
     if status == "pass":
 
-        students = conn.execute(
-            "SELECT * FROM students WHERE percentage >= 40"
-        ).fetchall()
+     students = conn.execute("""
+      SELECT
+        students.roll_number,
+        students.student_name,
+        students.score,
+        students.percentage,
+        students.exam_date,
+        subjects.name AS subject_name
+    FROM students
+    LEFT JOIN subjects
+        ON students.subject_id = subjects.id
+    WHERE students.percentage >= 40
+    """).fetchall()
 
     elif status == "fail":
 
-        students = conn.execute(
-            "SELECT * FROM students WHERE percentage < 40"
-        ).fetchall()
-
+      students = conn.execute("""
+    SELECT
+        students.roll_number,
+        students.student_name,
+        students.score,
+        students.percentage,
+        students.exam_date,
+        subjects.name AS subject_name
+    FROM students
+    LEFT JOIN subjects
+        ON students.subject_id = subjects.id
+    WHERE students.percentage < 40
+    """).fetchall()
     else:
 
-        students = conn.execute(
-            "SELECT * FROM students"
-        ).fetchall()
+        students = conn.execute("""
+SELECT
+    students.roll_number,
+    students.student_name,
+    students.score,
+    students.percentage,
+    students.exam_date,
+    subjects.name AS subject_name
+FROM students
+LEFT JOIN subjects
+ON students.subject_id = subjects.id
+""").fetchall()
 
     conn.close()
 
@@ -95,69 +137,86 @@ def records():
 # ==========================
 @app.route("/add", methods=["GET", "POST"])
 def add_students():
+
     if session.get("role") != "admin":
         flash(
             "Admin only! You do not have permission to add students.",
             "danger"
         )
         return redirect(url_for("home"))
-    if request.method == "POST":
-        
-        student_name = request.form["student_name"]
-        roll_number = request.form["roll_number"]
-        subject_name = request.form["subject_name"]
-        marks = request.form["marks"]
-        
 
-        if  not student_name or not subject_name or not marks:
+    conn = get_db()
+
+    if request.method == "POST":
+
+        student_name = request.form["student_name"]
+        subject_id = request.form["subject_id"]
+        marks = request.form["marks"]
+
+        if not student_name or not subject_id or not marks:
 
             flash(
                 "All fields are required!",
                 "danger"
             )
 
-            return redirect(
-                url_for("add_students")
-            )
+            conn.close()
+
+            return redirect(url_for("add_students"))
 
         marks = int(marks)
-
         percentage = marks
 
-        conn = get_db()
-
+        # Auto Generate Roll Number
         roll_number = conn.execute(
             "SELECT COUNT(*) FROM students"
         ).fetchone()[0] + 1
 
         conn.execute(
-            "INSERT INTO students (roll_number, student_name, subject_name, score, percentage, exam_date) VALUES (?, ?, ?, ?, ?, ?)",
+            """
+            INSERT INTO students
             (
                 roll_number,
-                student_name,  # Replace with actual student name if available
-                subject_name,  # Replace with actual subject name if available
+                student_name,
+                subject_id,
+                score,
+                percentage,
+                exam_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                roll_number,
+                student_name,
+                subject_id,
                 marks,
                 percentage,
-                "24/06/2026"  # Replace with actual exam date if available
+                "24/06/2026"
             )
         )
 
         conn.commit()
-        conn.close()
 
         flash(
             f"Student {student_name} added successfully!",
             "success"
         )
 
-        return redirect(
-            url_for("records")
-        )
+        conn.close()
+
+        return redirect(url_for("records"))
+
+    # Load Subjects for Dropdown
+    subjects = conn.execute(
+        "SELECT * FROM subjects ORDER BY name"
+    ).fetchall()
+
+    conn.close()
 
     return render_template(
-        "add_students.html")
-    
-
+        "add_students.html",
+        subjects=subjects
+    )
 
 # ==========================
 # MCQ QUESTIONS
@@ -516,7 +575,7 @@ def edit_student(roll_number):
         student=student
     )
 # ==========================
-# search student by roll number
+# search student 
 # ==========================
 
 @app.route("/search")
@@ -527,18 +586,38 @@ def search():
     conn = get_db()
 
     if q:
-        students = conn.execute(
-            """
-            SELECT * FROM students
-            WHERE student_name LIKE ?
-            OR CAST(roll_number AS TEXT) LIKE ?
-            """,
-            (f"%{q}%", f"%{q}%")
-        ).fetchall()
+
+        students = conn.execute("""
+            SELECT
+                students.id,
+                students.roll_number,
+                students.student_name,
+                students.score,
+                students.percentage,
+                students.exam_date,
+                subjects.name AS subject_name
+            FROM students
+            LEFT JOIN subjects
+            ON students.subject_id = subjects.id
+            WHERE students.student_name LIKE ?
+            OR CAST(students.roll_number AS TEXT) LIKE ?
+        """, (f"%{q}%", f"%{q}%")).fetchall()
+
     else:
-        students = conn.execute(
-            "SELECT * FROM students"
-        ).fetchall()
+
+        students = conn.execute("""
+            SELECT
+                students.id,
+                students.roll_number,
+                students.student_name,
+                students.score,
+                students.percentage,
+                students.exam_date,
+                subjects.name AS subject_name
+            FROM students
+            LEFT JOIN subjects
+            ON students.subject_id = subjects.id
+        """).fetchall()
 
     conn.close()
 
@@ -547,6 +626,17 @@ def search():
         students=students,
         query=q
     )
+# ==========================
+# subject route
+# ==========================
+@app.route('/subjects')
+def subjects():
+    conn=get_db()
+    rows=conn.execute('''
+                      SUBJECT subjects_name
+                      FROM subjects
+                      ''').fetchall()
+
 # ==========================
 # RUN APP
 # ==========================

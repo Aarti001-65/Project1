@@ -6,8 +6,6 @@
 
 <form action="{{ url_for('add_students') }}" method="POST">
 
-    
-
     <div class="mb-3">
         <label class="form-label">Student Name</label>
         <input type="text"
@@ -15,19 +13,31 @@
                class="form-control"
                required>
     </div>
+
     <div class="mb-3">
         <label class="form-label">Roll Number</label>
-        <input type="text"
+        <input type="number"
                name="roll_number"
                class="form-control"
                required>
     </div>
+
     <div class="mb-3">
-        <label class="form-label">subject_name</label>
-        <input type="text"
-               name="subject_name"
-               class="form-control"
-               required>
+        <label class="form-label">Subject</label>
+
+        <select name="subject_id"
+                class="form-select"
+                required>
+
+            <option value="">Select Subject</option>
+
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}">
+                    {{ subject.name }}
+                </option>
+            {% endfor %}
+
+        </select>
     </div>
 
     <div class="mb-3">
@@ -37,7 +47,7 @@
                class="form-control"
                required>
     </div>
-    
+
     <button type="submit" class="btn btn-success">
         Add Student
     </button>
