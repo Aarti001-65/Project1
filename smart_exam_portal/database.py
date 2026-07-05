@@ -1,5 +1,7 @@
 import sqlite3
 
+from smart_exam_portal import app
+
 
 def get_db():
     conn = sqlite3.connect("myproject.db")
