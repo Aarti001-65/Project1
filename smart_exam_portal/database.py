@@ -1,8 +1,5 @@
 import sqlite3
 
-from smart_exam_portal import app
-
-
 def get_db():
     conn = sqlite3.connect("myproject.db")
     conn.row_factory = sqlite3.Row
@@ -113,7 +110,3 @@ def init_db():
 
     conn.commit()
     conn.close()
-
-init_db()
-if __name__ == "__main__":
-   app.run(debug=True)
