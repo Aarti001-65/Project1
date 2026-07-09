@@ -310,7 +310,7 @@ def login():
             )
 
             return redirect(
-                url_for("Exam")
+                url_for("exam")
             )
         else:
             flash(
@@ -402,8 +402,8 @@ def register():
 # ==========================
 # START EXAM
 # ==========================
-@app.route("/Exam")
-def Exam():
+@app.route("/exam")
+def exam():
 
     if "username" not in session:
 
@@ -417,7 +417,7 @@ def Exam():
         )
 
     return render_template(
-        "Exam.html",
+        "exam.html",
         questions=questions
     )
 @app.route("/exam_instructions")
