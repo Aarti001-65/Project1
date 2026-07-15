@@ -103,6 +103,17 @@
                 </tbody>
 
             </table>
+            <!--AI Tip section-->
+            <div class="mb-3">
+                <h5 class="fw-bold">💡 AI study tips:</h5>
+                {% if tip %}
+                <div class="alert alert-info">{{ tip }}</div>
+                {% else %}
+                <a href="{{ url_for('get_ai_tips', id=student['id']) }}" class="btn btn-info btn-sm">
+                    Get AI Study Tips
+                </a>
+                {% endif %}
+            </div>
 
         </div>
 

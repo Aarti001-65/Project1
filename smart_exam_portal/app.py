@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from database import get_db, init_db
+from groq import Groq
+import os
 from werkzeug.security import generate_password_hash, check_password_hash   
 
 app = Flask(__name__)
@@ -633,10 +635,44 @@ def search():
 def subjects():
     conn=get_db()
     rows=conn.execute('''
-                      SUBJECT subjects_name
+                      SELECT subjects_name
                       FROM subjects
                       ''').fetchall()
+@app.route('/students/<int:id>/tip')
+def get_ai_tip(id):
+    conn = get_db()
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (id,)
+    ).fetchone()
+    conn.close()
 
+    if student is None:
+        flash(
+            f"No student found with ID {id}!",
+            "danger"
+        )
+        return redirect(url_for("records"))
+
+    prompt=f"""
+     name: {student['name']}
+    score: {student['score']}
+    student subject: {student['subject_id']}
+    Please provide practical study tips,In Simple and encouraging tone.It should not be more than 2 lines.
+    """
+    client=Groq(api_key=os.environ.get("GROQ_API_KEY",""))
+
+    response=client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role":"user","content":prompt}]
+    )
+
+    tip=response.choices[0].message.content
+    return render_template(
+        "records.html",
+        student=student,
+        tip=tip
+    )
 # ==========================
 # RUN APP
 # ==========================
