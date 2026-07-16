@@ -1,84 +1,152 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Smart Exam Portal</title>
+{% extends "base.html" %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-.search-btn{
-    transition: all 0.3s ease;
-}
+{% block content %}
 
-.search-btn:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px #e7e1e14d;
-}
+<h2 class="mb-3">Student Records</h2>
+<form method="GET" action="{{ url_for('records') }}" class="mb-3">
 
-.navbar-brand{
-    font-size: 28px;
-    font-weight: bold;
-}
+    <select name="status" class="form-select w-25 d-inline">
+        <option value=""
+    {% if request.args.get('status') == '' %}
+        selected
+    {% endif %}>
+    All Students
+</option>
 
-.nav-link{
-    font-weight: 500;
-}
+<option value="pass"
+    {% if request.args.get('status') == 'pass' %}
+        selected
+    {% endif %}>
+    Pass Students
+</option>
 
-.nav-link:hover{
-    color: rgb(241, 241, 25) !important;
-}
-</style>
-</head>
-<body>
+<option value="fail"
+    {% if request.args.get('status') == 'fail' %}
+        selected
+    {% endif %}>
+    Fail Students
+</option>
+    </select>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url_for('home') }}">
-            🎓 Smart Exam Portal
-        </a>
-
-        <div>
-            <a class="nav-link text-white d-inline" href="{{ url_for('home') }}">🏠Home</a>
-            <a class="nav-link text-white d-inline" href="{{ url_for('records') }}">📚Records</a>
-            <a class="nav-link text-white d-inline" href="{{ url_for('add_students') }}">👨‍🎓Add Student</a>
-            <a class="nav-link text-white d-inline" href="{{ url_for('exam') }}">📝Start Exam</a>
-            <form class="d-flex ms-3" action="{{url_for('search')}}" method="GET">
-    
-    <input class="form-control me-2 rounded-pill"
-           type="search"
-           placeholder="🔍 Search Student"
-           name="q"
-           style="width:180px;">
-
-    <button class="btn btn-warning fw-bold rounded-pill px-3 search-btn"
-            type="submit">
-        Search
+    <button type="submit" class="btn btn-primary">
+        Filter
     </button>
 
 </form>
+
+<div class="container">
+    <div class="row">
+
+        <!-- TABLE SECTION -->
+        <div class="col-md-8">
+
+            <table class="table table-striped table-hover table-bordered">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Exam Date</th>
+                        <th>Subject Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for student in students %}
+                    <tr>
+
+                        <td>{{ loop.index }}</td>
+                        <td>{{ student.roll_number }}</td>
+                        <td>{{ student.student_name }}</td>
+                        <td>{{ student.score }}</td>
+                        <td>{{ student.percentage }}%</td>
+                        <td>{{ student.exam_date }}</td>
+                        <td>{{ student.subject_name }}</td>
+
+                        <td>
+                           {% if student.percentage >= 40 %}
+                          <span class="badge bg-success">Pass</span>
+                {% else %}
+                          <span class="badge bg-danger">Fail</span>
+                {% endif %}
+                        </td>
+
+<td>
+     {% if session.get("role") == "admin" %}
+
+    <a href="{{ url_for('edit_student', roll_number=student.roll_number) }}"
+       class="btn btn-warning btn-sm">
+       Update
+    </a>
+
+    <form method="POST"
+          action="{{ url_for('delete_student', roll_number=student.roll_number) }}"
+          style="display:inline;">
+
+        <button type="submit"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Are you sure you want to delete this student?')">
+            Delete
+        </button>
+    </form>
+</td>
+{% endif %}
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+            <!--AI Tip section-->
+            <div class="mb-3">
+                <h5 class="fw-bold">💡 AI study tips:</h5>
+                {% if tip %}
+                <div class="alert alert-info">{{ tip }}</div>
+                {% else %}
+                <a href="{{ url_for('get_ai_tips', id=student['id']) }}" class="btn btn-info btn-sm">
+                    Get AI Study Tips
+                </a>
+                {% endif %}
+            </div>
+
         </div>
-    </div>
-</nav>
 
-<div class="container mt-4">
+        <!-- STATS CARD SECTION -->
+        <div class="col-md-4">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
+            <div class="card shadow">
+                <div class="card-body">
+
+                    <h4 class="text-center">📊 Statistics</h4>
+                    <hr>
+
+                    <p>
+                        <strong>Total Students:</strong>
+                        {{ students|length }}
+                    </p>
+
+                    <p>
+                        <strong>Passed Students:</strong>
+                        {{ students|selectattr('percentage', 'ge', 40)|list|length }}
+                    </p>
+
+                    <p>
+                        <strong>Failed Students:</strong>
+                        {{ students|selectattr('percentage', 'lt', 40)|list|length }}
+                    </p>
+
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+            </div>
 
-    {% block content %}
-    {% endblock %}
+        </div>
 
+    </div>
 </div>
 
-<footer class="bg-dark text-white text-center p-3 mt-5">
-    © 2026 Smart Exam Portal
-</footer>
-
-</body>
-</html>
+{% endblock %}

@@ -1,7 +1,13 @@
+from http import client
+from urllib import response
+from dotenv import load_dotenv
+from click import prompt
 from flask import Flask, render_template, request, flash, redirect, url_for, session
+import groq
 from database import get_db, init_db
 from groq import Groq
 import os
+load_dotenv()  # Load environment variables from .env file
 from werkzeug.security import generate_password_hash, check_password_hash   
 
 app = Flask(__name__)
@@ -84,6 +90,7 @@ def records():
 
      students = conn.execute("""
       SELECT
+        students.id,
         students.roll_number,
         students.student_name,
         students.score,
@@ -100,6 +107,7 @@ def records():
 
       students = conn.execute("""
     SELECT
+        students.id,
         students.roll_number,
         students.student_name,
         students.score,
@@ -115,6 +123,7 @@ def records():
 
         students = conn.execute("""
 SELECT
+    students.id,
     students.roll_number,
     students.student_name,
     students.score,
@@ -638,44 +647,84 @@ def subjects():
                       SELECT subjects_name
                       FROM subjects
                       ''').fetchall()
+
+
 @app.route('/students/<int:id>/tip')
 def get_ai_tip(id):
     conn = get_db()
-    student = conn.execute(
-        "SELECT * FROM students WHERE id = ?",
-        (id,)
-    ).fetchone()
-    conn.close()
+
+    # Selected student with subject name
+    student = conn.execute("""
+        SELECT
+            students.id,
+            students.student_name,
+            students.score,
+            subjects.name AS subject_name
+        FROM students
+        LEFT JOIN subjects
+            ON students.subject_id = subjects.id
+        WHERE students.id = ?
+    """, (id,)).fetchone()
 
     if student is None:
-        flash(
-            f"No student found with ID {id}!",
-            "danger"
-        )
+        conn.close()
+        flash(f"No student found with ID {id}!", "danger")
         return redirect(url_for("records"))
 
-    prompt=f"""
-     name: {student['name']}
-    score: {student['score']}
-    student subject: {student['subject_id']}
-    Please provide practical study tips,In Simple and encouraging tone.It should not be more than 2 lines.
-    """
-    client=Groq(api_key=os.environ.get("GROQ_API_KEY",""))
+    prompt = f"""
+Name: {student['student_name']}
+Score: {student['score']}
+Subject: {student['subject_name']}
 
-    response=client.chat.completions.create(
+Please provide prGroq(
+        api_key=""
+    )actical study tips in a simple and encouraging tone.
+It should not be more than 2 lines.
+"""
+
+    # Create Groq client
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+    # Generate AI response
+    response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
-        messages=[{"role":"user","content":prompt}]
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
     )
 
-    tip=response.choices[0].message.content
+    tip = response.choices[0].message.content
+
+    # Load all students with subject names
+    students = conn.execute("""
+        SELECT
+            students.id,
+            students.roll_number,
+            students.student_name,
+            students.score,
+            students.percentage,
+            students.exam_date,
+            subjects.name AS subject_name
+        FROM students
+        LEFT JOIN subjects
+            ON students.subject_id = subjects.id
+    """).fetchall()
+    conn.close()
+
     return render_template(
         "records.html",
-        student=student,
+        students=students,
         tip=tip
     )
+
+
 # ==========================
 # RUN APP
 # ==========================
 init_db()
+
 if __name__ == "__main__":
     app.run(debug=True)
