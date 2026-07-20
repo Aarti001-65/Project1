@@ -1,5 +1,6 @@
 import sqlite3
 
+
 def get_db():
     conn = sqlite3.connect("myproject.db")
     conn.row_factory = sqlite3.Row
@@ -32,13 +33,24 @@ def init_db():
         score INTEGER,
         percentage REAL,
         exam_date TEXT,
+        photo TEXT DEFAULT 'default.jpg',
         FOREIGN KEY(subject_id) REFERENCES subjects(id)
     )
     """)
 
     # Add subject_id column if old database exists
     try:
-        conn.execute("ALTER TABLE students ADD COLUMN subject_id INTEGER")
+        conn.execute(
+            "ALTER TABLE students ADD COLUMN subject_id INTEGER"
+        )
+    except sqlite3.OperationalError:
+        pass
+
+    # Add photo column if old database exists
+    try:
+        conn.execute(
+            "ALTER TABLE students ADD COLUMN photo TEXT DEFAULT 'default.jpg'"
+        )
     except sqlite3.OperationalError:
         pass
 
@@ -54,6 +66,7 @@ def init_db():
     )
     """)
 
+    # Add role column if old database exists
     try:
         conn.execute("""
         ALTER TABLE users

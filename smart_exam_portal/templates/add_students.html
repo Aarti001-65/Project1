@@ -4,15 +4,18 @@
 
 <h2>Add New Student</h2>
 
-<form action="{{ url_for('add_students') }}" method="POST">
+<form action="{{ url_for('add_students') }}"
+      method="POST"
+      enctype="multipart/form-data">
 
     <div class="mb-3">
-        <label class="form-label">Student Name</label>
-        <input type="text"
-               name="student_name"
-               class="form-control"
-               required>
-    </div>
+    <label class="form-label">Student Photo</label>
+    <input
+        type="file"
+        name="photo"
+        class="form-control"
+        accept=".jpg,.jpeg,.png">
+</div>
 
     <div class="mb-3">
         <label class="form-label">Roll Number</label>
@@ -47,6 +50,12 @@
                class="form-control"
                required>
     </div>
+    <div class="mb-3">
+        <label class="form-label">Student Photo</label>
+        <input type="file"
+               name="photo"
+               class="form-control"
+               accept="image/*">
 
     <button type="submit" class="btn btn-success">
         Add Student

@@ -8,11 +8,17 @@ from database import get_db, init_db
 from groq import Groq
 import os
 load_dotenv()  # Load environment variables from .env file
-from werkzeug.security import generate_password_hash, check_password_hash   
+from werkzeug.security import generate_password_hash, check_password_hash 
+from werkzeug.utils import secure_filename  
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
 
+UPLOAD_FOLDER = "static/uploads"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 # Create table
 init_db()
 
@@ -35,6 +41,7 @@ def home():
             students.score,
             students.percentage,
             students.exam_date,
+            students.photo,
             subjects.name AS subject_name
         FROM students
         LEFT JOIN subjects
@@ -96,6 +103,7 @@ def records():
         students.score,
         students.percentage,
         students.exam_date,
+        students.photo,
         subjects.name AS subject_name
     FROM students
     LEFT JOIN subjects
@@ -164,15 +172,17 @@ def add_students():
         subject_id = request.form["subject_id"]
         marks = request.form["marks"]
 
+        # Photo Upload
+        file = request.files.get("photo")
+        filename = "default.jpg"
+
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
         if not student_name or not subject_id or not marks:
-
-            flash(
-                "All fields are required!",
-                "danger"
-            )
-
+            flash("All fields are required!", "danger")
             conn.close()
-
             return redirect(url_for("add_students"))
 
         marks = int(marks)
@@ -183,6 +193,7 @@ def add_students():
             "SELECT COUNT(*) FROM students"
         ).fetchone()[0] + 1
 
+        # Insert Student
         conn.execute(
             """
             INSERT INTO students
@@ -192,9 +203,10 @@ def add_students():
                 subject_id,
                 score,
                 percentage,
-                exam_date
+                exam_date,
+                photo
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 roll_number,
@@ -202,22 +214,22 @@ def add_students():
                 subject_id,
                 marks,
                 percentage,
-                "24/06/2026"
+                "24/06/2026",
+                filename
             )
         )
 
         conn.commit()
+        conn.close()
 
         flash(
             f"Student {student_name} added successfully!",
             "success"
         )
 
-        conn.close()
-
         return redirect(url_for("records"))
 
-    # Load Subjects for Dropdown
+    # Load Subjects
     subjects = conn.execute(
         "SELECT * FROM subjects ORDER BY name"
     ).fetchall()
@@ -228,7 +240,6 @@ def add_students():
         "add_students.html",
         subjects=subjects
     )
-
 # ==========================
 # MCQ QUESTIONS
 # ==========================
@@ -606,6 +617,7 @@ def search():
                 students.score,
                 students.percentage,
                 students.exam_date,
+                students.photo,
                 subjects.name AS subject_name
             FROM students
             LEFT JOIN subjects
@@ -659,6 +671,7 @@ def get_ai_tip(id):
             students.id,
             students.student_name,
             students.score,
+            students.photo,
             subjects.name AS subject_name
         FROM students
         LEFT JOIN subjects
