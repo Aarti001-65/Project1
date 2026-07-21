@@ -2,65 +2,79 @@
 
 {% block content %}
 
-<h2>Add New Student</h2>
+<div class="container mt-4">
 
-<form action="{{ url_for('add_students') }}"
-      method="POST"
-      enctype="multipart/form-data">
+    <h2 class="mb-4">Add New Student</h2>
 
-    <div class="mb-3">
-    <label class="form-label">Student Photo</label>
-    <input
-        type="file"
-        name="photo"
-        class="form-control"
-        accept=".jpg,.jpeg,.png">
+    <form action="{{ url_for('add_students') }}"
+          method="POST"
+          enctype="multipart/form-data">
+
+        <!-- Student Photo -->
+        <div class="mb-3">
+            <label class="form-label">Student Photo</label>
+            <input type="file"
+                   name="photo"
+                   class="form-control"
+                   accept=".jpg,.jpeg,.png">
+        </div>
+
+        <!-- Student Name -->
+        <div class="mb-3">
+            <label class="form-label">Student Name</label>
+            <input type="text"
+                   name="student_name"
+                   class="form-control"
+                   placeholder="Enter Student Name"
+                   required>
+        </div>
+
+        <!-- Roll Number -->
+        <div class="mb-3">
+            <label class="form-label">Roll Number</label>
+            <input type="number"
+                   name="roll_number"
+                   class="form-control"
+                   placeholder="Enter Roll Number"
+                   required>
+        </div>
+
+        <!-- Subject -->
+        <div class="mb-3">
+            <label class="form-label">Subject</label>
+
+            <select name="subject_id"
+                    class="form-select"
+                    required>
+
+                <option value="">Select Subject</option>
+
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}">
+                        {{ subject.name }}
+                    </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Marks -->
+        <div class="mb-3">
+            <label class="form-label">Marks</label>
+            <input type="number"
+                   name="marks"
+                   class="form-control"
+                   placeholder="Enter Marks"
+                   required>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-success">
+            Add Student
+        </button>
+
+    </form>
+
 </div>
-
-    <div class="mb-3">
-        <label class="form-label">Roll Number</label>
-        <input type="number"
-               name="roll_number"
-               class="form-control"
-               required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Subject</label>
-
-        <select name="subject_id"
-                class="form-select"
-                required>
-
-            <option value="">Select Subject</option>
-
-            {% for subject in subjects %}
-                <option value="{{ subject.id }}">
-                    {{ subject.name }}
-                </option>
-            {% endfor %}
-
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Marks</label>
-        <input type="number"
-               name="marks"
-               class="form-control"
-               required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Student Photo</label>
-        <input type="file"
-               name="photo"
-               class="form-control"
-               accept="image/*">
-
-    <button type="submit" class="btn btn-success">
-        Add Student
-    </button>
-
-</form>
 
 {% endblock %}

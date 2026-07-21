@@ -9,14 +9,22 @@ from groq import Groq
 import os
 load_dotenv()  # Load environment variables from .env file
 from werkzeug.security import generate_password_hash, check_password_hash 
+import uuid
 from werkzeug.utils import secure_filename  
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
 
-UPLOAD_FOLDER = "static/uploads"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 # Create table
@@ -80,8 +88,6 @@ def home():
         average_score=average_score,
         highest_score=highest_score
     )
-
-
 # ==========================
 # RECORDS PAGE
 # ==========================
@@ -90,13 +96,10 @@ def home():
 def records():
 
     status = request.args.get("status", "")
-
     conn = get_db()
 
-    if status == "pass":
-
-     students = conn.execute("""
-      SELECT
+    query = """
+    SELECT
         students.id,
         students.roll_number,
         students.student_name,
@@ -108,40 +111,15 @@ def records():
     FROM students
     LEFT JOIN subjects
         ON students.subject_id = subjects.id
-    WHERE students.percentage >= 40
-    """).fetchall()
+    """
+
+    if status == "pass":
+        query += " WHERE students.percentage >= 40"
 
     elif status == "fail":
+        query += " WHERE students.percentage < 40"
 
-      students = conn.execute("""
-    SELECT
-        students.id,
-        students.roll_number,
-        students.student_name,
-        students.score,
-        students.percentage,
-        students.exam_date,
-        subjects.name AS subject_name
-    FROM students
-    LEFT JOIN subjects
-        ON students.subject_id = subjects.id
-    WHERE students.percentage < 40
-    """).fetchall()
-    else:
-
-        students = conn.execute("""
-SELECT
-    students.id,
-    students.roll_number,
-    students.student_name,
-    students.score,
-    students.percentage,
-    students.exam_date,
-    subjects.name AS subject_name
-FROM students
-LEFT JOIN subjects
-ON students.subject_id = subjects.id
-""").fetchall()
+    students = conn.execute(query).fetchall()
 
     conn.close()
 
@@ -149,8 +127,6 @@ ON students.subject_id = subjects.id
         "records.html",
         students=students
     )
-
-
 # ==========================
 # ADD STUDENT
 # ==========================
@@ -170,30 +146,20 @@ def add_students():
 
         student_name = request.form["student_name"]
         subject_id = request.form["subject_id"]
-        marks = request.form["marks"]
+        marks = int(request.form["marks"])
+        roll_number = request.form["roll_number"]
+
+        percentage = marks
 
         # Photo Upload
         file = request.files.get("photo")
         filename = "default.jpg"
 
-        if file and file.filename and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+        if file and file.filename != "" and allowed_file(file.filename):
+            ext = file.filename.rsplit(".", 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        if not student_name or not subject_id or not marks:
-            flash("All fields are required!", "danger")
-            conn.close()
-            return redirect(url_for("add_students"))
-
-        marks = int(marks)
-        percentage = marks
-
-        # Auto Generate Roll Number
-        roll_number = conn.execute(
-            "SELECT COUNT(*) FROM students"
-        ).fetchone()[0] + 1
-
-        # Insert Student
         conn.execute(
             """
             INSERT INTO students
@@ -229,7 +195,6 @@ def add_students():
 
         return redirect(url_for("records"))
 
-    # Load Subjects
     subjects = conn.execute(
         "SELECT * FROM subjects ORDER BY name"
     ).fetchall()
