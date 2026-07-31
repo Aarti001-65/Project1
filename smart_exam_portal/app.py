@@ -96,36 +96,73 @@ def home():
 def records():
 
     status = request.args.get("status", "")
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
     conn = get_db()
 
+    # Base query
     query = """
-    SELECT
-        students.id,
-        students.roll_number,
-        students.student_name,
-        students.score,
-        students.percentage,
-        students.exam_date,
-        students.photo,
-        subjects.name AS subject_name
     FROM students
     LEFT JOIN subjects
-        ON students.subject_id = subjects.id
+    ON students.subject_id = subjects.id
     """
 
+    where_clause = ""
+
     if status == "pass":
-        query += " WHERE students.percentage >= 40"
+        where_clause = " WHERE students.percentage >= 40"
 
     elif status == "fail":
-        query += " WHERE students.percentage < 40"
+        where_clause = " WHERE students.percentage < 40"
 
-    students = conn.execute(query).fetchall()
+    # Total students (according to filter)
+    total_students = conn.execute(
+        "SELECT COUNT(*) " + query + where_clause
+    ).fetchone()[0]
+
+    total_pages = (total_students + per_page - 1) // per_page
+    offset = (page - 1) * per_page
+
+    # Student records (10 per page)
+    students = conn.execute(
+        """
+        SELECT
+            students.id,
+            students.roll_number,
+            students.student_name,
+            students.score,
+            students.percentage,
+            students.exam_date,
+            students.photo,
+            subjects.name AS subject_name
+        """
+        + query +
+        where_clause +
+        " LIMIT ? OFFSET ?",
+        (per_page, offset)
+    ).fetchall()
+
+    # Statistics
+    passed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage >= 40"
+    ).fetchone()[0]
+
+    failed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage < 40"
+    ).fetchone()[0]
 
     conn.close()
 
     return render_template(
         "records.html",
-        students=students
+        students=students,
+        page=page,
+        total_pages=total_pages,
+        total_students=total_students,
+        passed_students=passed_students,
+        failed_students=failed_students,
+        tip=None
     )
 # ==========================
 # ADD STUDENT
@@ -506,7 +543,6 @@ def delete_student(roll_number):
 # ==========================
 # Edit student records
 # ==========================
-
 @app.route("/edit/<int:roll_number>", methods=["GET", "POST"])
 def edit_student(roll_number):
 
@@ -519,23 +555,56 @@ def edit_student(roll_number):
 
     conn = get_db()
 
+    student = conn.execute(
+        "SELECT * FROM students WHERE roll_number=?",
+        (roll_number,)
+    ).fetchone()
+
+    if not student:
+        conn.close()
+        flash("Student not found!", "danger")
+        return redirect(url_for("records"))
+
     if request.method == "POST":
 
+        new_roll_number = request.form["roll_number"]
         student_name = request.form["student_name"]
         score = int(request.form["score"])
+        percentage = float(request.form["percentage"])
+        exam_date = request.form["exam_date"]
+        subject_id = request.form["subject_id"]
 
-        percentage = score
+        photo = student["photo"]
+
+        file = request.files.get("photo")
+
+        if file and file.filename != "" and allowed_file(file.filename):
+            ext = file.filename.rsplit(".", 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            photo = filename
 
         conn.execute(
             """
             UPDATE students
-            SET student_name = ?, score = ?, percentage = ?
-            WHERE roll_number = ?
+            SET
+                roll_number=?,
+                student_name=?,
+                subject_id=?,
+                score=?,
+                percentage=?,
+                exam_date=?,
+                photo=?
+            WHERE roll_number=?
             """,
             (
+                new_roll_number,
                 student_name,
+                subject_id,
                 score,
                 percentage,
+                exam_date,
+                photo,
                 roll_number
             )
         )
@@ -550,16 +619,16 @@ def edit_student(roll_number):
 
         return redirect(url_for("records"))
 
-    student = conn.execute(
-        "SELECT * FROM students WHERE roll_number = ?",
-        (roll_number,)
-    ).fetchone()
+    subjects = conn.execute(
+        "SELECT * FROM subjects ORDER BY name"
+    ).fetchall()
 
     conn.close()
 
     return render_template(
         "edit.html",
-        student=student
+        student=student,
+        subjects=subjects
     )
 # ==========================
 # search student 

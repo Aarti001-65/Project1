@@ -60,7 +60,7 @@
 
                     <tr>
 
-                        <td>{{ loop.index }}</td>
+                        <td>{{ (page-1)*10 + loop.index }}</td>
 
                         <td>{{ student.roll_number }}</td>
 
@@ -146,6 +146,41 @@
 
             </table>
 
+            <!-- Pagination -->
+
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=page-1, status=request.args.get('status')) }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for p in range(1, total_pages + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=p, status=request.args.get('status')) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=page+1, status=request.args.get('status')) }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+
         </div>
 
         <!-- Statistics Card -->
@@ -164,17 +199,17 @@
 
                     <p>
                         <strong>Total Students:</strong>
-                        {{ students|length }}
+                        {{ total_students }}
                     </p>
 
                     <p>
                         <strong>Passed Students:</strong>
-                        {{ students|selectattr('percentage','ge',40)|list|length }}
+                        {{ passed_students }}
                     </p>
 
                     <p>
                         <strong>Failed Students:</strong>
-                        {{ students|selectattr('percentage','lt',40)|list|length }}
+                        {{ failed_students }}
                     </p>
 
                     {% if tip %}
