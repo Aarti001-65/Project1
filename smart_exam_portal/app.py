@@ -694,7 +694,7 @@ def subjects():
                       FROM subjects
                       ''').fetchall()
 
-
+#  Al tip route
 @app.route('/students/<int:id>/tip')
 def get_ai_tip(id):
     conn = get_db()
@@ -764,7 +764,9 @@ It should not be more than 2 lines.
     return render_template(
         "records.html",
         students=students,
-        tip=tip
+        tip=tip,
+        page=1,
+        total_pages=2
     )
 
 
