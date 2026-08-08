@@ -723,9 +723,7 @@ Name: {student['student_name']}
 Score: {student['score']}
 Subject: {student['subject_name']}
 
-Please provide prGroq(
-        api_key=""
-    )actical study tips in a simple and encouraging tone.
+Please provide practical study tips in a simple and encouraging tone.
 It should not be more than 2 lines.
 """
 
@@ -745,7 +743,18 @@ It should not be more than 2 lines.
 
     tip = response.choices[0].message.content
 
-    # Load all students with subject names
+    # Pagination
+    page = 1
+    per_page = 10
+
+    # Total students
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    total_pages = (total_students + per_page - 1) // per_page
+
+    # First page students
     students = conn.execute("""
         SELECT
             students.id,
@@ -754,19 +763,34 @@ It should not be more than 2 lines.
             students.score,
             students.percentage,
             students.exam_date,
+            students.photo,
             subjects.name AS subject_name
         FROM students
         LEFT JOIN subjects
             ON students.subject_id = subjects.id
-    """).fetchall()
+        LIMIT ? OFFSET ?
+    """, (per_page, 0)).fetchall()
+
+    # Statistics
+    passed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage >= 40"
+    ).fetchone()[0]
+
+    failed_students = conn.execute(
+        "SELECT COUNT(*) FROM students WHERE percentage < 40"
+    ).fetchone()[0]
+
     conn.close()
 
     return render_template(
         "records.html",
         students=students,
-        tip=tip,
-        page=1,
-        total_pages=2
+        page=page,
+        total_pages=total_pages,
+        total_students=total_students,
+        passed_students=passed_students,
+        failed_students=failed_students,
+        tip=tip
     )
 
 
