@@ -8,9 +8,9 @@ from database import get_db, init_db
 from groq import Groq
 import os
 load_dotenv()  # Load environment variables from .env file
-from werkzeug.security import generate_password_hash, check_password_hash 
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
-from werkzeug.utils import secure_filename  
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
@@ -631,7 +631,7 @@ def edit_student(roll_number):
         subjects=subjects
     )
 # ==========================
-# search student 
+# search student
 # ==========================
 
 @app.route("/search")
@@ -694,7 +694,7 @@ def subjects():
                       FROM subjects
                       ''').fetchall()
 
-
+#  Al tip route
 @app.route('/students/<int:id>/tip')
 def get_ai_tip(id):
     conn = get_db()
@@ -764,7 +764,9 @@ It should not be more than 2 lines.
     return render_template(
         "records.html",
         students=students,
-        tip=tip
+        tip=tip,
+        page=1,
+        total_pages=2
     )
 
 
