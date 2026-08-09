@@ -1,152 +1,220 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Exam Portal</title>
 
-{% block content %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<h2 class="mb-3">Student Records</h2>
-<form method="GET" action="{{ url_for('records') }}" class="mb-3">
+    <style>
 
-    <select name="status" class="form-select w-25 d-inline">
-        <option value=""
-    {% if request.args.get('status') == '' %}
-        selected
-    {% endif %}>
-    All Students
-</option>
+        body{
+            background-color:#f8f9fa;
+        }
 
-<option value="pass"
-    {% if request.args.get('status') == 'pass' %}
-        selected
-    {% endif %}>
-    Pass Students
-</option>
+        /* Navbar */
 
-<option value="fail"
-    {% if request.args.get('status') == 'fail' %}
-        selected
-    {% endif %}>
-    Fail Students
-</option>
-    </select>
+        .navbar{
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            padding: 8px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
 
-    <button type="submit" class="btn btn-primary">
-        Filter
-    </button>
+        .navbar-brand{
+            font-size: 32px;
+            font-weight: 700;
+        }
 
-</form>
+        .nav-link{
+            color:white !important;
+            font-weight:500;
+            margin-left:10px;
+            transition: all 0.3s ease;
+        }
 
-<div class="container">
-    <div class="row">
+        .nav-link:hover{
+            color:#ffd700 !important;
+            transform: translateY(-2px);
+        }
 
-        <!-- TABLE SECTION -->
-        <div class="col-md-8">
+        /* Search */
 
-            <table class="table table-striped table-hover table-bordered">
+        .search-input{
+            width:170px;
+            height:38px;
+        }
 
-                <thead class="table-dark">
-                    <tr>
-                        <th>No</th>
-                        <th>Roll No</th>
-                        <th>Name</th>
-                        <th>Score</th>
-                        <th>Percentage</th>
-                        <th>Exam Date</th>
-                        <th>Subject Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+        .search-btn{
+            transition: all 0.3s ease;
+        }
 
-                <tbody>
+        .search-btn:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+        }
 
-                    {% for student in students %}
-                    <tr>
+        /* Content */
 
-                        <td>{{ loop.index }}</td>
-                        <td>{{ student.roll_number }}</td>
-                        <td>{{ student.student_name }}</td>
-                        <td>{{ student.score }}</td>
-                        <td>{{ student.percentage }}%</td>
-                        <td>{{ student.exam_date }}</td>
-                        <td>{{ student.subject_name }}</td>
+        .main-content{
+            min-height:75vh;
+        }
 
-                        <td>
-                           {% if student.percentage >= 40 %}
-                          <span class="badge bg-success">Pass</span>
-                {% else %}
-                          <span class="badge bg-danger">Fail</span>
-                {% endif %}
-                        </td>
+        /* Footer */
 
-<td>
-     {% if session.get("role") == "admin" %}
+        footer{
+            margin-top:50px;
+        }
 
-    <a href="{{ url_for('edit_student', roll_number=student.roll_number) }}"
-       class="btn btn-warning btn-sm">
-       Update
-    </a>
+    </style>
+</head>
 
-    <form method="POST"
-          action="{{ url_for('delete_student', roll_number=student.roll_number) }}"
-          style="display:inline;">
+<body>
 
-        <button type="submit"
-                class="btn btn-danger btn-sm"
-                onclick="return confirm('Are you sure you want to delete this student?')">
-            Delete
+<nav class="navbar navbar-expand-lg navbar-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+            🎓 Smart Exam Portal
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarContent">
+
+            <span class="navbar-toggler-icon"></span>
         </button>
-    </form>
-</td>
+
+        <div class="collapse navbar-collapse justify-content-end"
+             id="navbarContent">
+
+            <ul class="navbar-nav align-items-center">
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('home') }}">
+                        🏠 Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('records') }}">
+                        📚 Records
+                    </a>
+                </li>
+            {% if session.get('role') == 'admin' %}
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('add_students') }}">
+                        👨‍🎓 Add Student
+                    </a>
+                </li>
+            {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('exam') }}">
+                        📝 Start Exam
+                    </a>
+                </li>
+                 {% if session.get('username') %}
+
+<li class="nav-item me-2">
+    <span class="badge bg-warning text-dark fs-6 p-2">
+        👤 {{ session['username'] }}
+    </span>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link"
+       href="{{ url_for('logout') }}">
+        🚪 Logout
+    </a>
+</li>
+
+{% else %}
+
+<li class="nav-item">
+    <a class="nav-link"
+       href="{{ url_for('login') }}">
+        🔐 Login
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link"
+       href="{{ url_for('register') }}">
+        🆕 Register
+    </a>
+</li>
+
 {% endif %}
+                
+            </ul>
 
-                    {% endfor %}
+            <form class="d-flex ms-lg-3 mt-2 mt-lg-0 position-relative"
+                  action="{{ url_for('search') }}"
+                  method="GET">
 
-                </tbody>
+                <input
+                    id="searchInput"
+                    class="form-control me-2 rounded-pill search-input"
+                    type="search"
+                    placeholder="🔍 Search Student"
+                    name="q"
+                    autocomplete="off">
 
-            </table>
-            <!--AI Tip section-->
-            <div class="mb-3">
-                <h5 class="fw-bold">💡 AI study tips:</h5>
-                {% if tip %}
-                <div class="alert alert-info">{{ tip }}</div>
-                {% else %}
-                <a href="{{ url_for('get_ai_tips', id=student['id']) }}" class="btn btn-info btn-sm">
-                    Get AI Study Tips
-                </a>
-                {% endif %}
-            </div>
+                <button
+                    class="btn btn-warning fw-bold rounded-pill px-3 search-btn"
+                    type="submit">
 
-        </div>
+                    Search
 
-        <!-- STATS CARD SECTION -->
-        <div class="col-md-4">
+                </button>
 
-            <div class="card shadow">
-                <div class="card-body">
-
-                    <h4 class="text-center">📊 Statistics</h4>
-                    <hr>
-
-                    <p>
-                        <strong>Total Students:</strong>
-                        {{ students|length }}
-                    </p>
-
-                    <p>
-                        <strong>Passed Students:</strong>
-                        {{ students|selectattr('percentage', 'ge', 40)|list|length }}
-                    </p>
-
-                    <p>
-                        <strong>Failed Students:</strong>
-                        {{ students|selectattr('percentage', 'lt', 40)|list|length }}
-                    </p>
-
+                <div id="suggestions"
+                     class="list-group position-absolute"
+                     style="top:45px; width:250px; z-index:1000;">
                 </div>
-            </div>
+
+            </form>
 
         </div>
 
     </div>
+
+</nav>
+
+<div class="container mt-4 main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
 </div>
 
-{% endblock %}
+<footer class="bg-dark text-white text-center p-3">
+    © 2026 Smart Exam Portal
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+background-color:#f8f9fa;
+ background-color:#f8f9fa;
