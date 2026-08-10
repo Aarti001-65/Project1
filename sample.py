@@ -314,3 +314,244 @@ background-color:#f8f9fa;
 </div>
 
 {% endblock %}'''
+
+'''record.html
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-3">Student Records</h2>
+
+<form method="GET" action="{{ url_for('records') }}" class="mb-3">
+
+    <select name="status" class="form-select w-25 d-inline">
+
+        <option value=""
+            {% if request.args.get('status') == '' %}selected{% endif %}>
+            All Students
+        </option>
+
+        <option value="pass"
+            {% if request.args.get('status') == 'pass' %}selected{% endif %}>
+            Pass Students
+        </option>
+
+        <option value="fail"
+            {% if request.args.get('status') == 'fail' %}selected{% endif %}>
+            Fail Students
+        </option>
+
+    </select>
+
+    <button type="submit" class="btn btn-primary">
+        Filter
+    </button>
+
+</form>
+
+<div class="container">
+
+    <div class="row">
+
+        <!-- Student Table -->
+        <div class="col-md-8">
+
+            <table class="table table-striped table-hover table-bordered">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Exam Date</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr>
+
+                        <td>{{ (page-1)*10 + loop.index }}</td>
+
+                        <td>{{ student.roll_number }}</td>
+
+                        <td>
+
+                            <img
+                                src="{{ url_for('static', filename='uploads/' ~ (student.photo or 'default.jpg')) }}"
+                                alt="Student Photo"
+                                width="45"
+                                height="45"
+                                class="rounded-circle me-2"
+                                style="object-fit: cover;">
+
+                            {{ student.student_name }}
+
+                        </td>
+
+                        <td>{{ student.score }}</td>
+
+                        <td>{{ student.percentage }}%</td>
+
+                        <td>{{ student.exam_date }}</td>
+
+                        <td>{{ student.subject_name }}</td>
+
+                        <td>
+
+                            {% if student.percentage >= 40 %}
+
+                                <span class="badge bg-success">
+                                    Pass
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    Fail
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a href="{{ url_for('get_ai_tip', id=student.id) }}"
+                               class="btn btn-info btn-sm mb-1">
+                                💡 AI Study Tips
+                            </a>
+
+                            {% if session.get("role") == "admin" %}
+
+                                <a href="{{ url_for('edit_student', roll_number=student.roll_number) }}"
+                                   class="btn btn-warning btn-sm mb-1">
+                                    Update
+                                </a>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('delete_student', roll_number=student.roll_number) }}"
+                                    style="display:inline;">
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to delete this student?')">
+
+                                        Delete
+
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <!-- Pagination -->
+
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=page-1, status=request.args.get('status')) }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for p in range(1, total_pages + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=p, status=request.args.get('status')) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for('records', page=page+1, status=request.args.get('status')) }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+
+        </div>
+
+        <!-- Statistics Card -->
+
+        <div class="col-md-4">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <h4 class="text-center">
+                        📊 Statistics
+                    </h4>
+
+                    <hr>
+
+                    <p>
+                        <strong>Total Students:</strong>
+                        {{ total_students }}
+                    </p>
+
+                    <p>
+                        <strong>Passed Students:</strong>
+                        {{ passed_students }}
+                    </p>
+
+                    <p>
+                        <strong>Failed Students:</strong>
+                        {{ failed_students }}
+                    </p>
+
+                    {% if tip %}
+
+                        <hr>
+
+                        <h5>
+                            💡 AI Study Tip
+                        </h5>
+
+                        <div class="alert alert-info">
+                            {{ tip }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}'''
