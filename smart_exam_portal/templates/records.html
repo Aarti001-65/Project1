@@ -524,6 +524,10 @@
                                 <td>
 
                                     <div class="d-flex flex-wrap">
+                                        <a href="{{ url_for('student_detail', student_id=student.id) }}"
+                                                    class="btn btn-primary btn-sm action-btn">
+                                                    👁️ View Details
+                                        </a>
 
                                         <a href="{{ url_for(
                                                     'get_ai_tip',

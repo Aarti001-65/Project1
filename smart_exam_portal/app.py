@@ -91,7 +91,6 @@ def home():
 # ==========================
 # RECORDS PAGE
 # ==========================
-
 @app.route("/records")
 def records():
 
@@ -164,6 +163,44 @@ def records():
         failed_students=failed_students,
         tip=None
     )
+
+# student detail route
+@app.route("/student/<int:student_id>")
+def student_detail(student_id):
+
+    conn = get_db()
+
+    student = conn.execute(
+        """
+        SELECT
+            students.id,
+            students.roll_number,
+            students.student_name,
+            students.score,
+            students.percentage,
+            students.exam_date,
+            students.photo,
+            subjects.name AS subject_name
+        FROM students
+        LEFT JOIN subjects
+            ON students.subject_id = subjects.id
+        WHERE students.id = ?
+        """,
+        (student_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if student is None:
+        flash("Student not found!", "danger")
+        return redirect(url_for("records"))
+
+    return render_template(
+        "student_detail.html",
+        student=student
+    )
+
+
 # ==========================
 # ADD STUDENT
 # ==========================
