@@ -218,3 +218,99 @@
 </html>
 background-color:#f8f9fa;
  background-color:#f8f9fa;
+
+ '''home.html
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="text-center mb-4">
+    Welcome to Smart Exam Portal
+</h2>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Total Students</h5>
+                <span class="badge bg-primary">
+                    {{ students|length }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>✅Passed Students</h5>
+                <span class="badge bg-success">
+                    {{ passed_students }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>❌Failed Students</h5>
+                <span class="badge bg-danger">
+                    {{ failed_students }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card shadow">
+           <div class="card-body text-center">
+              <h5>Total Attempts</h5>
+              <span class="badge bg-info">
+                {{ total_attempts }}
+               </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body text-center">
+               <h5>Average Score</h5>
+               <span class="badge bg-warning text-dark">
+                {{ average_score|round(2) }}
+               </span>
+            </div>
+        </div>
+    </div>
+
+
+      <div class="col-md-4">
+           <div class="card shadow">
+                <div class="card-body text-center">
+                     <h5>Highest Score</h5>
+                     <span class="badge bg-dark">
+                      {{ highest_score }}
+                     </span>
+        
+                </div>
+            </div>
+        </div>
+</div>
+<div class="card mt-4 shadow">
+    <div class="card-body">
+        <h4>Project Features</h4>
+
+        <ul>
+            <li>Online MCQ Tests</li>
+            <li>Student Records</li>
+            <li>Score Calculation</li>
+            <li>Percentage Calculation</li>
+            <li>Pass / Fail Result</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}'''

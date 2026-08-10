@@ -2,92 +2,417 @@
 
 {% block content %}
 
-<h2 class="text-center mb-4">
-    Welcome to Smart Exam Portal
-</h2>
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body text-center">
-                <h5>Total Students</h5>
-                <span class="badge bg-primary">
-                    {{ students|length }}
-                </span>
+<style>
+    .home-wrapper {
+        padding: 30px 0;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #1e3a8a, #7c3aed);
+        color: white;
+        border-radius: 24px;
+        padding: 45px;
+        margin-bottom: 30px;
+        box-shadow: 0 12px 30px rgba(30, 58, 138, 0.20);
+    }
+
+    .hero-section h1 {
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .hero-section p {
+        font-size: 1.05rem;
+        opacity: 0.9;
+        max-width: 650px;
+    }
+
+    .hero-icon {
+        font-size: 80px;
+        text-align: center;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 18px;
+        transition: all 0.3s ease;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+        margin-bottom: 15px;
+    }
+
+    .stat-number {
+        font-size: 30px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stat-title {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .icon-blue {
+        background: #dbeafe;
+    }
+
+    .icon-green {
+        background: #dcfce7;
+    }
+
+    .icon-red {
+        background: #fee2e2;
+    }
+
+    .icon-purple {
+        background: #ede9fe;
+    }
+
+    .icon-orange {
+        background: #fef3c7;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 0;
+        border-bottom: 1px solid #eef0f5;
+    }
+
+    .feature-item:last-child {
+        border-bottom: none;
+    }
+
+    .feature-check {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 18px;
+    }
+
+    .quick-btn {
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .quick-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .portal-footer {
+        text-align: center;
+        color: #6b7280;
+        margin-top: 35px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 30px 22px;
+            text-align: center;
+        }
+
+        .hero-icon {
+            font-size: 55px;
+            margin-top: 20px;
+        }
+    }
+</style>
+
+
+<div class="container home-wrapper">
+
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <div class="row align-items-center">
+
+            <div class="col-md-8">
+                <h1>🎓 Smart Exam Portal</h1>
+
+                <p>
+                    A modern online examination platform for conducting
+                    MCQ tests, managing students and tracking examination
+                    performance.
+                </p>
+
+                <div class="mt-4">
+                    <a href="{{ url_for('exam') }}"
+                       class="btn btn-light btn-lg me-2 quick-btn">
+                        📝 Start Exam
+                    </a>
+
+                    <a href="{{ url_for('records') }}"
+                       class="btn btn-outline-light btn-lg quick-btn">
+                        👨‍🎓 View Students
+                    </a>
+                </div>
             </div>
+
+            <div class="col-md-4">
+                <div class="hero-icon">
+                    🖥️
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body text-center">
-                <h5>✅Passed Students</h5>
-                <span class="badge bg-success">
-                    {{ passed_students }}
-                </span>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body text-center">
-                <h5>❌Failed Students</h5>
-                <span class="badge bg-danger">
-                    {{ failed_students }}
-                </span>
-            </div>
-        </div>
-    </div>
+    <!-- STATISTICS -->
+    <div class="row g-4 mb-4">
 
-</div>
-<div class="row mt-3">
-    <div class="col-md-4">
-        <div class="card shadow">
-           <div class="card-body text-center">
-              <h5>Total Attempts</h5>
-              <span class="badge bg-info">
-                {{ total_attempts }}
-               </span>
-            </div>
-        </div>
-    </div>
+        <!-- Passed -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
 
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body text-center">
-               <h5>Average Score</h5>
-               <span class="badge bg-warning text-dark">
-                {{ average_score|round(2) }}
-               </span>
-            </div>
-        </div>
-    </div>
+                    <div class="stat-icon icon-green">
+                        ✅
+                    </div>
 
+                    <div class="stat-title">
+                        Passed Students
+                    </div>
 
-      <div class="col-md-4">
-           <div class="card shadow">
-                <div class="card-body text-center">
-                     <h5>Highest Score</h5>
-                     <span class="badge bg-dark">
-                      {{ highest_score }}
-                     </span>
-        
+                    <p class="stat-number text-success">
+                        {{ passed_students }}
+                    </p>
+
                 </div>
             </div>
         </div>
-</div>
-<div class="card mt-4 shadow">
-    <div class="card-body">
-        <h4>Project Features</h4>
 
-        <ul>
-            <li>Online MCQ Tests</li>
-            <li>Student Records</li>
-            <li>Score Calculation</li>
-            <li>Percentage Calculation</li>
-            <li>Pass / Fail Result</li>
-        </ul>
+
+        <!-- Failed -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="stat-icon icon-red">
+                        ❌
+                    </div>
+
+                    <div class="stat-title">
+                        Failed Students
+                    </div>
+
+                    <p class="stat-number text-danger">
+                        {{ failed_students }}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Average -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="stat-icon icon-purple">
+                        📊
+                    </div>
+
+                    <div class="stat-title">
+                        Average Score
+                    </div>
+
+                    <p class="stat-number text-primary">
+                        {{ average_score|round(2) }}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Highest -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="stat-icon icon-orange">
+                        🏆
+                    </div>
+
+                    <div class="stat-title">
+                        Highest Score
+                    </div>
+
+                    <p class="stat-number text-warning">
+                        {{ highest_score }}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
     </div>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="row g-4">
+
+        <!-- FEATURES -->
+        <div class="col-lg-7">
+
+            <div class="card section-card h-100">
+                <div class="card-body p-4">
+
+                    <h4 class="section-title mb-3">
+                        🚀 Portal Features
+                    </h4>
+
+                    <p class="text-muted">
+                        Everything you need for a simple and effective
+                        online examination experience.
+                    </p>
+
+
+                    <div class="feature-item">
+                        <div class="feature-check">📝</div>
+                        <div>
+                            <strong>Online MCQ Tests</strong>
+                            <div class="text-muted small">
+                                Conduct multiple-choice online examinations.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="feature-item">
+                        <div class="feature-check">👨‍🎓</div>
+                        <div>
+                            <strong>Student Records</strong>
+                            <div class="text-muted small">
+                                Manage and track student examination records.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="feature-item">
+                        <div class="feature-check">🎯</div>
+                        <div>
+                            <strong>Automatic Score Calculation</strong>
+                            <div class="text-muted small">
+                                Calculate examination marks automatically.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="feature-item">
+                        <div class="feature-check">📊</div>
+                        <div>
+                            <strong>Percentage Calculation</strong>
+                            <div class="text-muted small">
+                                Automatically calculate student percentage.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="feature-item">
+                        <div class="feature-check">🏆</div>
+                        <div>
+                            <strong>Pass / Fail Result</strong>
+                            <div class="text-muted small">
+                                Quickly identify examination performance.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+        <div class="col-lg-5">
+
+            <div class="card section-card h-100">
+                <div class="card-body p-4">
+
+                    <h4 class="section-title mb-3">
+                        ⚡ Quick Actions
+                    </h4>
+
+                    <p class="text-muted mb-4">
+                        Quickly access the most important sections.
+                    </p>
+
+
+                    <div class="d-grid gap-3">
+
+                        <a href="{{ url_for('exam') }}"
+                           class="btn btn-primary quick-btn">
+                            📝 Start New Exam
+                        </a>
+
+                        <a href="{{ url_for('records') }}"
+                           class="btn btn-outline-primary quick-btn">
+                            👨‍🎓 Manage Students
+                        </a>
+
+                        <a href="{{ url_for('add_students') }}"
+                           class="btn btn-outline-success quick-btn">
+                            ➕ Add Student
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="portal-footer">
+        🎓 Smart Exam Portal
+        <br>
+        <span>Online Examination & Student Performance Management System</span>
+    </div>
+
 </div>
 
 {% endblock %}
