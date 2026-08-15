@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2>📋 Review Your Answers</h2>
+
+        {% if attempt %}
+        <p class="text-muted mb-0">
+            📝 {{ attempt["exam_name"] }}
+        </p>
+        {% endif %}
+    </div>
+
+    {% for answer in answers %}
+
+    <div class="card mb-4 shadow-sm">
+
+        <div class="card-body">
+
+            <h5 class="mb-4">
+                Q{{ loop.index }}. {{ answer["question"] }}
+            </h5>
+
+            <div class="mb-2">
+                <strong>A.</strong> {{ answer["option_a"] }}
+            </div>
+
+            <div class="mb-2">
+                <strong>B.</strong> {{ answer["option_b"] }}
+            </div>
+
+            <div class="mb-2">
+                <strong>C.</strong> {{ answer["option_c"] }}
+            </div>
+
+            <div class="mb-3">
+                <strong>D.</strong> {{ answer["option_d"] }}
+            </div>
+
+            <hr>
+
+            {% if answer["selected_answer"] == "A" %}
+                {% set selected_text = answer["option_a"] %}
+            {% elif answer["selected_answer"] == "B" %}
+                {% set selected_text = answer["option_b"] %}
+            {% elif answer["selected_answer"] == "C" %}
+                {% set selected_text = answer["option_c"] %}
+            {% elif answer["selected_answer"] == "D" %}
+                {% set selected_text = answer["option_d"] %}
+            {% else %}
+                {% set selected_text = "Not Answered" %}
+            {% endif %}
+
+            {% if answer["correct_answer"] == "A" %}
+                {% set correct_text = answer["option_a"] %}
+            {% elif answer["correct_answer"] == "B" %}
+                {% set correct_text = answer["option_b"] %}
+            {% elif answer["correct_answer"] == "C" %}
+                {% set correct_text = answer["option_c"] %}
+            {% elif answer["correct_answer"] == "D" %}
+                {% set correct_text = answer["option_d"] %}
+            {% endif %}
+
+            <div class="mb-2">
+                <strong>Your Answer:</strong>
+                <span class="text-primary">
+                    {{ answer["selected_answer"] }}. {{ selected_text }}
+                </span>
+            </div>
+
+            <div class="mb-3">
+                <strong>Correct Answer:</strong>
+                <span class="text-success">
+                    {{ answer["correct_answer"] }}. {{ correct_text }}
+                </span>
+            </div>
+
+            {% if answer["is_correct"] == 1 %}
+
+            <div class="alert alert-success mb-0">
+                ✅ Correct Answer
+            </div>
+
+            {% else %}
+
+            <div class="alert alert-danger mb-0">
+                ❌ Wrong Answer
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+    <div class="text-center mt-4 mb-5">
+
+        <a href="{{ url_for('available_exams') }}"
+           class="btn btn-primary me-2">
+
+            📚 Available Exams
+
+        </a>
+
+        <a href="{{ url_for('home') }}"
+           class="btn btn-secondary">
+
+            🏠 Home
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

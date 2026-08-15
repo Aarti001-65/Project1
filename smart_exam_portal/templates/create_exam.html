@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-lg rounded-4">
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="text-center mb-4">
+
+                        <div class="fs-1">📝</div>
+
+                        <h2 class="fw-bold">
+                            Create New Exam
+                        </h2>
+
+                        <p class="text-muted">
+                            Create an examination for students
+                        </p>
+
+                    </div>
+
+                    <form method="POST">
+
+                        <!-- Exam Name -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Exam Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                placeholder="Example: Python Basics"
+                                required>
+
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Subject
+                            </label>
+
+                            <select
+                                name="subject_id"
+                                class="form-select"
+                                required>
+
+                                <option value="">
+                                    Select Subject
+                                </option>
+
+                                {% for subject in subjects %}
+
+                                <option value="{{ subject.id }}">
+                                    {{ subject.name }}
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Duration (Minutes)
+                            </label>
+
+                            <input
+                                type="number"
+                                name="duration"
+                                class="form-control"
+                                value="30"
+                                min="1"
+                                required>
+
+                        </div>
+
+                        <!-- Exam Date -->
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+                                Exam Date
+                            </label>
+
+                            <input
+                                type="date"
+                                name="exam_date"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary flex-grow-1">
+
+                                ➕ Create Exam
+
+                            </button>
+
+                            <a
+                                href="{{ url_for('home') }}"
+                                class="btn btn-outline-secondary">
+
+                                Cancel
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

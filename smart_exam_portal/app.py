@@ -1,3 +1,4 @@
+from datetime import datetime
 from http import client
 from urllib import response
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ load_dotenv()  # Load environment variables from .env file
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from werkzeug.utils import secure_filename
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = "smart_exam_portal"
@@ -77,6 +79,10 @@ def home():
         "SELECT MAX(score) FROM students"
     ).fetchone()[0] or 0
 
+    available_exams = conn.execute(
+    "SELECT COUNT(*) FROM exams WHERE status = 'active'"
+    ).fetchone()[0]
+
     conn.close()
 
     return render_template(
@@ -86,7 +92,8 @@ def home():
         failed_students=failed_students,
         total_attempts=total_attempts,
         average_score=average_score,
-        highest_score=highest_score
+        highest_score=highest_score,
+        available_exams=available_exams
     )
 # ==========================
 # RECORDS PAGE
@@ -344,6 +351,7 @@ questions = [
 # =========================
 # Login route
 # =========================
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -354,32 +362,46 @@ def login():
 
         conn = get_db()
 
-        users = conn.execute(
+        user = conn.execute(
             "SELECT * FROM users WHERE username = ?",
             (username,)
         ).fetchone()
 
         conn.close()
 
-        if users and check_password_hash(users["password"], password):
+        # Login successful
+        if user and check_password_hash(
+            user["password"],
+            password
+        ):
 
             session["username"] = username
-            session["role"] = users["role"]
+            session["role"] = user["role"]
+
             flash(
                 "Login Successful!",
                 "success"
             )
 
             return redirect(
-                url_for("exam")
+                url_for("available_exams")
             )
-        else:
-            flash(
-            "Invalid Username or Password",
-            "danger"
-        )
 
-    return render_template("login.html")
+        # Login failed
+        else:
+
+            flash(
+                "Invalid Username or Password",
+                "danger"
+            )
+
+            return render_template(
+                "login.html"
+            )
+
+    return render_template(
+        "login.html"
+    )
 # ===========================
 # logout route
 # ==========================
@@ -459,79 +481,315 @@ def register():
         )
 
     return render_template("register.html")
-
 # ==========================
 # START EXAM
 # ==========================
-@app.route("/exam")
-def exam():
+
+@app.route("/exam/<int:exam_id>")
+def exam(exam_id):
 
     if "username" not in session:
+        flash("Please login first!", "warning")
+        return redirect(url_for("login"))
 
-        flash(
-            "Please login first!",
-            "warning"
-        )
+    conn = get_db()
 
-        return redirect(
-            url_for("login")
-        )
+    # Selected exam ke questions hi fetch honge
+    rows = conn.execute("""
+        SELECT
+            id,
+            exam_id,
+            question,
+            option_a,
+            option_b,
+            option_c,
+            option_d,
+            correct_answer
+        FROM questions
+        WHERE exam_id = ?
+        ORDER BY id
+    """, (exam_id,)).fetchall()
+
+    # Selected exam ki details
+    exam = conn.execute("""
+        SELECT
+            exams.id,
+            exams.name,
+            exams.duration,
+            exams.exam_date,
+            subjects.name AS subject_name
+        FROM exams
+        LEFT JOIN subjects
+            ON exams.subject_id = subjects.id
+        WHERE exams.id = ?
+    """, (exam_id,)).fetchone()
+
+    conn.close()
+
+    # Exam exist nahi karta
+    if exam is None:
+        flash("Exam not found!", "danger")
+        return redirect(url_for("available_exams"))
+
+    # Is exam ke questions nahi hain
+    if not rows:
+        flash("No questions available for this exam!", "warning")
+        return redirect(url_for("available_exams"))
+
+    # Questions ko exam.html ke format me convert karo
+    questions = []
+
+    for q in rows:
+        questions.append({
+            "id": q["id"],
+            "question": q["question"],
+            "options": [
+                q["option_a"],
+                q["option_b"],
+                q["option_c"],
+                q["option_d"]
+            ],
+            "correct_answer": q["correct_answer"]
+        })
+        session["exam_start_time"] = datetime.now().timestamp()
+        session["current_exam_id"] = exam_id
 
     return render_template(
-        "exam.html",
-        questions=questions
-    )
+       "exam.html",
+       questions=questions,
+       exam=exam,
+       exam_id=exam_id
+     )
+
+# ==========================
+# EXAM INSTRUCTIONS
+# ==========================
+
 @app.route("/exam_instructions")
 def exam_instructions():
 
     if "username" not in session:
-
-        flash(
-            "Please login first!",
-            "warning"
-        )
-
-        return redirect(
-            url_for("login")
-        )
+        flash("Please login first!", "warning")
+        return redirect(url_for("login"))
 
     return render_template(
         "exam_instructions.html"
     )
-
-# ==========================
-# SUBMIT EXAM
-# ==========================
-
+# Submit exam
 @app.route("/submit_exam", methods=["POST"])
 def submit_exam():
 
-    score = 0
+    if "username" not in session:
+        flash("Please login first!", "warning")
+        return redirect(url_for("login"))
+
+    exam_id = request.form.get("exam_id")
+
+    if not exam_id:
+        flash("Invalid exam!", "danger")
+        return redirect(url_for("available_exams"))
+
+    from datetime import datetime
+
+    # Calculate time taken
+    start_time = session.get("exam_start_time")
+
+    if start_time:
+        time_taken_seconds = int(
+            datetime.now().timestamp() - start_time
+        )
+    else:
+        time_taken_seconds = 0
+
+    minutes = time_taken_seconds // 60
+    seconds = time_taken_seconds % 60
+
+    time_taken = f"{minutes} min {seconds} sec"
+
+    conn = get_db()
+
+    # Get exam and subject
+    exam = conn.execute("""
+        SELECT
+            exams.*,
+            subjects.name AS subject_name
+        FROM exams
+        LEFT JOIN subjects
+            ON exams.subject_id = subjects.id
+        WHERE exams.id = ?
+    """, (exam_id,)).fetchone()
+
+    if not exam:
+        conn.close()
+        flash("Exam not found!", "danger")
+        return redirect(url_for("available_exams"))
+
+    # Get questions
+    questions = conn.execute("""
+        SELECT *
+        FROM questions
+        WHERE exam_id = ?
+        ORDER BY id
+    """, (exam_id,)).fetchall()
+
+    if not questions:
+        conn.close()
+        flash("No questions found for this exam!", "warning")
+        return redirect(url_for("available_exams"))
+
+    # Check answers
+    correct_answers = 0
+    wrong_answers = 0
 
     for i, q in enumerate(questions):
 
-        user_answer = request.form.get(
-            f"q{i}"
-        )
+        user_answer = request.form.get(f"q{i}")
 
-        if user_answer == q["answer"]:
-            score += 1
+        if user_answer == q["correct_answer"]:
+            correct_answers += 1
+        else:
+            wrong_answers += 1
 
+    # Calculate score
+    total_questions = len(questions)
+    score = correct_answers
+
+    # Calculate percentage
     percentage = round(
-        (score / len(questions)) * 100,
+        (correct_answers / total_questions) * 100,
         2
     )
 
-    if percentage >= 40:
+    # Check pass or fail
+    passing_score = exam["passing_score"] or 4
+
+    if correct_answers >= passing_score:
         result = "Pass"
     else:
         result = "Fail"
 
+    # Get student details
+    username = session.get("username")
+
+    student = conn.execute("""
+        SELECT
+            id,
+            roll_number,
+            student_name,
+            photo
+        FROM students
+        WHERE username = ?
+    """, (username,)).fetchone()
+
+    student_name = username
+    roll_number = None
+    photo = "default.jpg"
+
+    if student:
+        student_name = student["student_name"]
+        roll_number = student["roll_number"]
+        photo = student["photo"] or "default.jpg"
+
+    # Get exam date
+    exam_date = datetime.now().strftime("%d/%m/%Y")
+
+    # Save exam attempt
+    conn.execute("""
+        INSERT INTO exam_attempts (
+            username,
+            student_name,
+            roll_number,
+            photo,
+            exam_id,
+            exam_name,
+            subject_id,
+            subject_name,
+            score,
+            total_questions,
+            percentage,
+            exam_date,
+            time_taken,
+            status,
+            correct_answers,
+            wrong_answers
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        username,
+        student_name,
+        roll_number,
+        photo,
+        exam["id"],
+        exam["name"],
+        exam["subject_id"],
+        exam["subject_name"],
+        score,
+        total_questions,
+        percentage,
+        exam_date,
+        time_taken_seconds,
+        result,
+        correct_answers,
+        wrong_answers
+    ))
+
+    # Get attempt ID
+    attempt_id = conn.execute(
+        "SELECT last_insert_rowid()"
+    ).fetchone()[0]
+
+    # Save each question answer
+    for i, q in enumerate(questions):
+
+        selected_answer = request.form.get(
+            f"q{i}"
+        )
+
+        correct_answer = q["correct_answer"]
+
+        is_correct = (
+            1
+            if selected_answer == correct_answer
+            else 0
+        )
+
+        conn.execute("""
+            INSERT INTO exam_attempt_answers (
+                attempt_id,
+                question_id,
+                selected_answer,
+                correct_answer,
+                is_correct
+            )
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            attempt_id,
+            q["id"],
+            selected_answer,
+            correct_answer,
+            is_correct
+        ))
+
+    # Save database changes
+    conn.commit()
+    conn.close()
+
+    # Clear exam session
+    session.pop("exam_start_time", None)
+    session.pop("current_exam_id", None)
+
+    # Show exam result
     return render_template(
-        "result.html",
+        "exam_results.html",
         score=score,
+        total_questions=total_questions,
+        correct_answers=correct_answers,
+        wrong_answers=wrong_answers,
         percentage=percentage,
-        result=result
+        result=result,
+        time_taken=time_taken,
+        exam=exam,
+        attempt_id=attempt_id
     )
 # ==========================
 # DELETE - Remove by Roll No
@@ -829,7 +1087,330 @@ It should not be more than 2 lines.
         failed_students=failed_students,
         tip=tip
     )
+#create exam route
+@app.route("/create_exam", methods=["GET", "POST"])
+def create_exam():
 
+    if session.get("role") != "admin":
+        flash("Admin only!", "danger")
+        return redirect(url_for("home"))
+
+    conn = get_db()
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        subject_id = request.form["subject_id"]
+        duration = request.form["duration"]
+        exam_date = request.form["exam_date"]
+
+        try:
+            cursor = conn.execute("""
+                INSERT INTO exams
+                (name, subject_id, duration, exam_date)
+                VALUES (?, ?, ?, ?)
+            """, (name, subject_id, duration, exam_date))
+
+            exam_id = cursor.lastrowid
+
+            conn.commit()
+            conn.close()
+
+            flash("Exam created successfully!", "success")
+
+            return redirect(
+                url_for("add_question", exam_id=exam_id)
+            )
+
+        except sqlite3.IntegrityError:
+            conn.close()
+
+            flash(
+                "Exam with this name already exists!",
+                "warning"
+            )
+
+            return redirect(
+                url_for("create_exam")
+            )
+
+    subjects = conn.execute(
+        "SELECT * FROM subjects ORDER BY name"
+    ).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "create_exam.html",
+        subjects=subjects
+    )
+# ==========================
+# EDIT EXAM
+# ==========================
+
+@app.route("/edit_exam/<int:exam_id>", methods=["GET", "POST"])
+def edit_exam(exam_id):
+
+    if session.get("role") != "admin":
+        flash("Admin only!", "danger")
+        return redirect(url_for("home"))
+
+    conn = get_db()
+
+    exam = conn.execute("""
+        SELECT *
+        FROM exams
+        WHERE id = ?
+    """, (exam_id,)).fetchone()
+
+    if not exam:
+        conn.close()
+        flash("Exam not found!", "danger")
+        return redirect(url_for("available_exams"))
+
+    subjects = conn.execute("""
+        SELECT *
+        FROM subjects
+        ORDER BY name
+    """).fetchall()
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        subject_id = request.form["subject_id"]
+        duration = request.form["duration"]
+        exam_date = request.form["exam_date"]
+        status = request.form["status"]
+
+        conn.execute("""
+            UPDATE exams
+            SET name = ?,
+                subject_id = ?,
+                duration = ?,
+                exam_date = ?,
+                status = ?
+            WHERE id = ?
+        """, (
+            name,
+            subject_id,
+            duration,
+            exam_date,
+            status,
+            exam_id
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash("Exam updated successfully!", "success")
+        return redirect(url_for("available_exams"))
+
+    conn.close()
+
+    return render_template(
+        "edit_exam.html",
+        exam=exam,
+        subjects=subjects
+    )
+
+
+# ==========================
+# DELETE EXAM
+# ==========================
+
+@app.route("/delete_exam/<int:exam_id>", methods=["POST", "GET"])
+def delete_exam(exam_id):
+
+    if session.get("role") != "admin":
+        flash("Admin only!", "danger")
+        return redirect(url_for("home"))
+
+    conn = get_db()
+
+    # Delete questions belonging to this exam first
+    conn.execute("""
+        DELETE FROM questions
+        WHERE exam_id = ?
+    """, (exam_id,))
+
+    # Delete exam
+    cursor = conn.execute("""
+        DELETE FROM exams
+        WHERE id = ?
+    """, (exam_id,))
+
+    conn.commit()
+    conn.close()
+
+    if cursor.rowcount == 0:
+        flash("Exam not found!", "danger")
+    else:
+        flash("Exam deleted successfully!", "success")
+
+    return redirect(url_for("available_exams"))
+#available exams route
+@app.route("/available_exams")
+def available_exams():
+
+    if not session.get("username"):
+        flash("Please login first!", "warning")
+        return redirect(url_for("login"))
+
+    conn = get_db()
+
+    exams = conn.execute("""
+        SELECT
+            exams.*,
+            subjects.name AS subject_name
+        FROM exams
+        LEFT JOIN subjects
+            ON exams.subject_id = subjects.id
+        ORDER BY
+            CASE
+                -- Python
+                WHEN exams.name = '🐍 Python Programming Basics' THEN 1
+                WHEN exams.name = '🐍 Python Advanced Concepts' THEN 2
+
+                -- HTML
+                WHEN exams.name = '🌐 HTML Fundamentals' THEN 3
+                WHEN exams.name = '🌐 HTML Forms & Web Structure' THEN 4
+
+                -- Java
+                WHEN exams.name = '☕ Java Programming Basics' THEN 5
+                WHEN exams.name = '☕ Java OOP & Advanced' THEN 6
+
+                -- CSS
+                WHEN exams.name = '🎨 CSS Fundamentals' THEN 7
+                WHEN exams.name = '🎨 CSS Advanced Styling' THEN 8
+
+                -- SQL
+                WHEN exams.name = '🗄️ SQL & Database Basics' THEN 9
+                WHEN exams.name = '🗄️ SQL Queries & Advanced Database' THEN 10
+
+                -- Any new exam
+                ELSE 999
+            END,
+            exams.id ASC
+    """).fetchall()
+
+    print("AVAILABLE EXAMS:", [dict(exam) for exam in exams])
+
+    conn.close()
+
+    return render_template(
+        "available_exams.html",
+        exams=exams
+    )
+# add_questions route
+@app.route("/add_question/<int:exam_id>", methods=["GET", "POST"])
+def add_question(exam_id):
+
+    if session.get("role") != "admin":
+        flash("Admin only!", "danger")
+        return redirect(url_for("home"))
+
+    conn = get_db()
+
+    exam = conn.execute(
+        "SELECT * FROM exams WHERE id = ?",
+        (exam_id,)
+    ).fetchone()
+
+    if not exam:
+        conn.close()
+        flash("Exam not found!", "danger")
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+
+        question = request.form["question"]
+        option_a = request.form["option_a"]
+        option_b = request.form["option_b"]
+        option_c = request.form["option_c"]
+        option_d = request.form["option_d"]
+        correct_answer = request.form["correct_answer"]
+
+        conn.execute("""
+            INSERT INTO questions
+            (exam_id, question, option_a, option_b,
+             option_c, option_d, correct_answer)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            exam_id,
+            question,
+            option_a,
+            option_b,
+            option_c,
+            option_d,
+            correct_answer
+        ))
+
+        conn.commit()
+
+        flash("Question added successfully!", "success")
+
+    questions = conn.execute("""
+        SELECT *
+        FROM questions
+        WHERE exam_id = ?
+        ORDER BY id
+    """, (exam_id,)).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "add_question.html",
+        exam=exam,
+        questions=questions
+    )
+# Review exam answers
+@app.route("/review_answers/<int:attempt_id>")
+def review_answers(attempt_id):
+
+    if "username" not in session:
+        flash("Please login first!", "warning")
+        return redirect(url_for("login"))
+
+    conn = get_db()
+
+    # Get attempt details
+    attempt = conn.execute("""
+        SELECT *
+        FROM exam_attempts
+        WHERE id = ? AND username = ?
+    """, (attempt_id, session["username"])).fetchone()
+
+    if not attempt:
+        conn.close()
+        flash("Exam attempt not found!", "danger")
+        return redirect(url_for("available_exams"))
+
+    # Get submitted answers
+    answers = conn.execute("""
+        SELECT
+            eaa.question_id,
+            eaa.selected_answer,
+            eaa.correct_answer,
+            eaa.is_correct,
+            q.question,
+            q.option_a,
+            q.option_b,
+            q.option_c,
+            q.option_d
+        FROM exam_attempt_answers eaa
+        JOIN questions q
+            ON eaa.question_id = q.id
+        WHERE eaa.attempt_id = ?
+        ORDER BY q.id
+    """, (attempt_id,)).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "review_answers.html",
+        attempt=attempt,
+        answers=answers
+    )
 
 # ==========================
 # RUN APP

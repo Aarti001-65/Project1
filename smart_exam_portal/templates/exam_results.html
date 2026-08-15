@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow-lg border-0">
+
+        <div class="card-body text-center p-5">
+
+            <h1 class="mb-3">
+                🎉 Exam Completed!
+            </h1>
+
+            {% if exam %}
+            <h4 class="text-primary mb-4">
+                📝 {{ exam["name"] }}
+            </h4>
+            {% endif %}
+
+            <hr>
+
+            <!-- RESULT CARDS -->
+            <div class="row justify-content-center mt-4">
+
+                <!-- SCORE -->
+                <div class="col-md-3 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Score
+                            </h6>
+
+                            <h2 class="text-primary">
+                                {{ score }}/{{ total_questions }}
+                            </h2>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- CORRECT ANSWERS -->
+                <div class="col-md-3 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Correct Answers
+                            </h6>
+
+                            <h2 class="text-success">
+                                ✅ {{ correct_answers }}
+                            </h2>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- WRONG ANSWERS -->
+                <div class="col-md-3 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Wrong Answers
+                            </h6>
+
+                            <h2 class="text-danger">
+                                ❌ {{ wrong_answers }}
+                            </h2>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- PERCENTAGE -->
+                <div class="col-md-3 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Percentage
+                            </h6>
+
+                            <h2 class="text-primary">
+                                {{ percentage }}%
+                            </h2>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TIME TAKEN -->
+            <div class="row justify-content-center mt-2">
+
+                <div class="col-md-4 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Time Taken
+                            </h6>
+
+                            <h2 class="text-primary">
+                                ⏱️ {{ time_taken }}
+                            </h2>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- RESULT -->
+                <div class="col-md-4 mb-3">
+
+                    <div class="card bg-light h-100">
+                        <div class="card-body">
+
+                            <h6 class="text-muted">
+                                Result
+                            </h6>
+
+                            {% if result == "Pass" %}
+
+                            <span class="badge bg-success fs-5 px-4 py-2">
+                                ✅ PASS
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge bg-danger fs-5 px-4 py-2">
+                                ❌ FAIL
+                            </span>
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <hr class="my-4">
+
+
+            <!-- BUTTONS -->
+
+            <a href="{{ url_for('available_exams') }}"
+               class="btn btn-primary me-2">
+
+                📚 Available Exams
+
+            </a>
+
+            <a href="{{ url_for('home') }}"
+               class="btn btn-secondary">
+
+                🏠 Home
+
+            </a>
+            <a href="{{ url_for('review_answers', attempt_id=attempt_id) }}"
+               class="btn btn-warning me-2">
+
+               📋 Review Answers
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

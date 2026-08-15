@@ -2,53 +2,154 @@
 
 {% block content %}
 
-<h2 class="mb-4">
-    Online MCQ Exam
-</h2>
+<div class="container py-4">
 
-<form method="POST"
-      action="{{ url_for('submit_exam') }}">
+    <div class="mb-4">
 
-{% for q in questions %}
+        <h2>📝 Online MCQ Exam</h2>
 
-{% set question_index = loop.index0 %}
+        {% if exam %}
+        <p class="text-muted mb-0">
+            {{ exam["name"] }}
+        </p>
+        {% endif %}
 
-<div class="card mb-3">
-    <div class="card-body">
+    </div>
 
-        <h5>
-            Q{{ loop.index }}.
-            {{ q.question }}
-        </h5>
 
-        {% for option in q.options %}
+    <!-- TIMER -->
+<div class="card shadow-sm border-primary"
+     style="
+        position: fixed;
+        top: 90px;
+        right: 25px;
+        z-index: 1050;
+        width: 180px;
+    ">
 
-        <div class="form-check">
+    <div class="card-body text-center py-2">
 
-            <input
-                class="form-check-input"
-                type="radio"
-                name="q{{ question_index }}"
-                value="{{ option }}"
-                required>
+        <h6 class="mb-1">
+            ⏱️ Time Taken
+        </h6>
 
-            <label class="form-check-label">
-                {{ option }}
-            </label>
+        <h4 id="timer" class="text-primary mb-0">
+            00:00
+        </h4>
+
+    </div>
+
+</div>
+
+
+    <form method="POST"
+          action="{{ url_for('submit_exam') }}">
+
+        <!-- Selected Exam ID -->
+        <input type="hidden"
+               name="exam_id"
+               value="{{ exam_id }}">
+
+
+        {% for q in questions %}
+
+        {% set question_index = loop.index0 %}
+
+        <div class="card mb-4 shadow-sm">
+
+            <div class="card-body">
+
+                <h5 class="mb-4">
+                    Q{{ loop.index }}. {{ q["question"] }}
+                </h5>
+
+
+                {% for option in q["options"] %}
+
+                {% set option_index = loop.index0 %}
+
+                <div class="form-check mb-3 p-3 border rounded">
+
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="q{{ question_index }}"
+                        value="{{ ['A', 'B', 'C', 'D'][option_index] }}"
+                        id="q{{ question_index }}_{{ option_index }}"
+                        required>
+
+                    <label
+                        class="form-check-label w-100"
+                        for="q{{ question_index }}_{{ option_index }}">
+
+                        <strong>
+                            {{ ['A', 'B', 'C', 'D'][option_index] }}.
+                        </strong>
+
+                        {{ option }}
+
+                    </label>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
 
         </div>
 
         {% endfor %}
 
-    </div>
+
+        <div class="text-center mb-5">
+
+            <button
+                type="submit"
+                class="btn btn-success btn-lg px-5">
+
+                ✅ Submit Exam
+
+            </button>
+
+        </div>
+
+    </form>
+
 </div>
 
-{% endfor %}
 
-<button type="submit" class="btn btn-primary">
-    Submit Exam
-</button>
+<!-- TIMER SCRIPT -->
 
-</form>
+<script>
+
+let startTime = Date.now();
+
+function updateTimer() {
+
+    let currentTime = Date.now();
+
+    let seconds = Math.floor(
+        (currentTime - startTime) / 1000
+    );
+
+    let minutes = Math.floor(seconds / 60);
+
+    let remainingSeconds = seconds % 60;
+
+    minutes = String(minutes).padStart(2, "0");
+
+    remainingSeconds = String(
+        remainingSeconds
+    ).padStart(2, "0");
+
+    document.getElementById("timer").innerText =
+        minutes + ":" + remainingSeconds;
+}
+
+updateTimer();
+
+setInterval(updateTimer, 1000);
+
+</script>
 
 {% endblock %}
