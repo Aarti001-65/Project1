@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -12,65 +13,105 @@
 
         <!-- Student Photo -->
         <div class="mb-3">
-            <label class="form-label">Student Photo</label>
+
+            <label class="form-label">
+                Student Photo
+            </label>
+
             <input type="file"
                    name="photo"
                    class="form-control"
                    accept=".jpg,.jpeg,.png">
+
         </div>
+
 
         <!-- Student Name -->
         <div class="mb-3">
-            <label class="form-label">Student Name</label>
+
+            <label class="form-label">
+                Student Name
+            </label>
+
             <input type="text"
                    name="student_name"
                    class="form-control"
                    placeholder="Enter Student Name"
                    required>
+
         </div>
+
 
         <!-- Roll Number -->
         <div class="mb-3">
-            <label class="form-label">Roll Number</label>
-            <input type="number"
-                   name="roll_number"
+
+            <label class="form-label">
+                Roll Number
+            </label>
+
+            <input type="text"
                    class="form-control"
-                   placeholder="Enter Roll Number"
-                   required>
+                   value="Auto Generated"
+                   readonly>
+
+            <small class="text-muted">
+                Roll number will be assigned automatically.
+            </small>
+
         </div>
+
 
         <!-- Subject -->
         <div class="mb-3">
-            <label class="form-label">Subject</label>
+
+            <label class="form-label">
+                Subject
+            </label>
 
             <select name="subject_id"
                     class="form-select"
                     required>
 
-                <option value="">Select Subject</option>
+                <option value="">
+                    Select Subject
+                </option>
 
                 {% for subject in subjects %}
+
                     <option value="{{ subject.id }}">
                         {{ subject.name }}
                     </option>
+
                 {% endfor %}
 
             </select>
+
         </div>
+
 
         <!-- Marks -->
         <div class="mb-3">
-            <label class="form-label">Marks</label>
+
+            <label class="form-label">
+                Marks
+            </label>
+
             <input type="number"
                    name="marks"
                    class="form-control"
                    placeholder="Enter Marks"
+                   min="0"
                    required>
+
         </div>
 
+
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-success">
+        <button type="submit"
+                class="btn btn-success">
+
             Add Student
+
         </button>
 
     </form>
@@ -78,3 +119,4 @@
 </div>
 
 {% endblock %}
+```

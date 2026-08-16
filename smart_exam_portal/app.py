@@ -157,7 +157,7 @@ def records():
         """
         + query +
         where_clause +
-        " ORDER BY students.id DESC LIMIT ? OFFSET ?",
+        " ORDER BY students.id ASC LIMIT ? OFFSET ?",
         (per_page, offset)
     ).fetchall()
 
@@ -239,7 +239,14 @@ def add_students():
         student_name = request.form["student_name"]
         subject_id = request.form["subject_id"]
         marks = int(request.form["marks"])
-        roll_number = request.form["roll_number"]
+
+        # Automatic Roll Number
+        result = conn.execute(
+            "SELECT MAX(roll_number) FROM students"
+        ).fetchone()
+
+        last_roll_number = result[0] if result[0] is not None else 0
+        roll_number = last_roll_number + 1
 
         percentage = marks
 
@@ -250,7 +257,13 @@ def add_students():
         if file and file.filename != "" and allowed_file(file.filename):
             ext = file.filename.rsplit(".", 1)[1].lower()
             filename = f"{uuid.uuid4().hex}.{ext}"
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            file.save(
+                os.path.join(
+                    app.config["UPLOAD_FOLDER"],
+                    filename
+                )
+            )
 
         conn.execute(
             """
@@ -281,7 +294,8 @@ def add_students():
         conn.close()
 
         flash(
-            f"Student {student_name} added successfully!",
+            f"Student {student_name} added successfully! "
+            f"Roll Number: {roll_number}",
             "success"
         )
 
@@ -1051,7 +1065,7 @@ It should not be more than 2 lines.
 
     # Pagination
     page = 1
-    per_page = 10
+    per_page =5 
 
     # Total students
     total_students = conn.execute(
