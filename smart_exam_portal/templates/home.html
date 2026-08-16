@@ -3,143 +3,348 @@
 {% block content %}
 
 <style>
-    .hero-section {
-        background: linear-gradient(135deg, #0d6efd, #6610f2);
+    body {
+        background: #f4f7ff;
+    }
+
+    .home-wrapper {
+        padding: 18px 0 40px;
+    }
+
+    /* HERO */
+    .hero-box {
+        background: linear-gradient(135deg, #7209e2);
+        border-radius: 24px;
+        padding: 38px 42px;
         color: white;
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 30px rgba(37, 117, 252, 0.25);
+        margin-bottom: 28px;
     }
 
-    .hero-section h1 {
-        font-weight: 700;
+    .hero-box::before {
+        content: "";
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        background: rgba(255,255,255,0.10);
+        border-radius: 50%;
+        right: -70px;
+        top: -90px;
     }
 
-    .hero-section p {
-        font-size: 17px;
+    .hero-box::after {
+        content: "";
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+        right: 180px;
+        bottom: -90px;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-small {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .hero-title {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .hero-text {
+        max-width: 650px;
+        font-size: 16px;
+        line-height: 1.6;
         opacity: 0.95;
     }
 
+    .hero-btn {
+        border-radius: 10px;
+        padding: 11px 22px;
+        font-weight: 700;
+        margin-right: 8px;
+        margin-top: 8px;
+    }
+
+    .hero-visual {
+        text-align: center;
+        font-size: 100px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+        color: #172b4d;
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+
+    /* STAT CARDS */
     .stat-card {
         border: none;
-        border-radius: 18px;
-        transition: 0.3s;
+        border-radius: 17px;
         height: 100%;
+        overflow: hidden;
+        transition: 0.3s;
+        box-shadow: 0 5px 18px rgba(0,0,0,0.07);
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        transform: translateY(-6px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+    }
+
+    .stat-card .card-body {
+        padding: 20px;
     }
 
     .stat-icon {
-        width: 55px;
-        height: 55px;
-        border-radius: 15px;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 26px;
-        margin-bottom: 15px;
+        font-size: 25px;
+        margin-bottom: 12px;
     }
 
-    .icon-blue {
-        background: #e7f1ff;
+    .stat-blue {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
     }
 
-    .icon-green {
-        background: #e8f8ef;
+    .stat-green {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
     }
 
-    .icon-red {
-        background: #fdeaea;
+    .stat-red {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
     }
 
-    .icon-purple {
-        background: #f0e9ff;
+    .stat-purple {
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
     }
 
-    .icon-orange {
-        background: #fff0df;
+    .stat-orange {
+        background: linear-gradient(135deg, #ffedd5, #fed7aa);
     }
 
-    .stat-title {
-        color: #6c757d;
-        font-size: 15px;
-        font-weight: 600;
+    .stat-label {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 700;
     }
 
     .stat-number {
-        font-size: 30px;
-        font-weight: 700;
-        margin: 5px 0;
+        font-size: 28px;
+        font-weight: 800;
+        color: #172b4d;
     }
 
-    .section-card {
+    /* EXAM CARDS */
+    .exam-card {
         border: none;
         border-radius: 18px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-    }
-
-    .feature-box {
-        padding: 20px;
-        border-radius: 15px;
-        background: #f8f9fa;
+        padding: 24px;
         height: 100%;
+        background: white;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
     }
 
-    .feature-box h5 {
-        font-weight: 600;
+    .exam-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.12);
     }
 
-    .quick-btn {
-        border-radius: 12px;
-        padding: 12px 20px;
-        font-weight: 600;
+    .exam-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 5px;
+    }
+
+    .html-card::before {
+        background: linear-gradient(90deg, #ff512f, #f09819);
+    }
+
+    .java-card::before {
+        background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    }
+
+    .python-card::before {
+        background: linear-gradient(90deg, #36d1dc, #5b86e5);
+    }
+
+    .css-card::before {
+        background: linear-gradient(90deg, #8e2de2, #4a00e0);
+    }
+
+    .sql-card::before {
+        background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+
+    .mcq-card::before {
+        background: linear-gradient(90deg, #f7971e, #ffd200);
+    }
+
+    .exam-icon {
+        font-size: 46px;
+        margin-bottom: 10px;
+    }
+
+    .exam-card h5 {
+        color: #172b4d;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .exam-card p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 42px;
+    }
+
+    .exam-btn {
+        border-radius: 9px;
+        font-weight: 700;
+    }
+
+    /* BOTTOM BANNER */
+    .start-banner {
+        margin-top: 28px;
+        padding: 25px 30px;
+        border-radius: 18px;
+        color: white;
+        background: linear-gradient(135deg, #7209e2, #3a0ca3, #4361ee);
+        box-shadow: 0 10px 25px rgba(114, 9, 226, 0.2);
+    }
+
+    .start-banner h4 {
+        font-weight: 800;
+    }
+
+    .start-btn {
+        background: white;
+        color: #dd2476;
+        border: none;
+        border-radius: 10px;
+        padding: 11px 22px;
+        font-weight: 800;
+    }
+
+    @media (max-width: 768px) {
+        .hero-box {
+            padding: 30px 24px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+        }
+
+        .hero-visual {
+            font-size: 70px;
+            margin-top: 20px;
+        }
     }
 </style>
 
 
-<div class="container py-4">
+<div class="container home-wrapper">
 
-    <!-- ========================= -->
-    <!-- HERO SECTION -->
-    <!-- ========================= -->
+    <!-- HERO -->
+    <div class="hero-box">
 
-    <div class="hero-section">
+        <div class="row align-items-center">
 
-        <h1>🎓 Welcome to Smart Exam Portal</h1>
+            <div class="col-lg-8 hero-content">
 
-        <p class="mb-0">
-            Manage students, conduct online exams,
-            and view examination results easily.
-        </p>
+                <div class="hero-small">
+                    🎓 Welcome to
+                </div>
+
+                <div class="hero-title">
+                    Smart Exam Portal
+                </div>
+
+                <div class="hero-text">
+                    Take online exams, practice programming, and track your results with ease. Our platform offers a variety of exams in HTML, CSS, Java, Python, SQL, and more.
+                </div>
+
+                <div>
+
+                    <a href="{{ url_for('available_exams') }}"
+                       class="btn btn-light hero-btn">
+                        📝 Available Exams
+                    </a>
+
+                    <a href="{{ url_for('records') }}"
+                       class="btn btn-outline-light hero-btn">
+                        📊 View Records
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="hero-visual">
+                    📝<br>
+                    🎓 🏆
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
 
-    <!-- ========================= -->
     <!-- STATISTICS -->
-    <!-- ========================= -->
+    <div class="d-flex justify-content-between align-items-center">
 
-    <div class="row g-4 mb-4">
+        <h3 class="section-title">
+            📊 Examination Overview
+        </h3>
 
-        <!-- Total Attempts -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
+    </div>
 
-                <div class="card-body p-4">
 
-                    <div class="stat-icon icon-blue">
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl col-lg-4 col-md-6 col-6">
+            <div class="stat-card bg-white">
+
+                <div class="card-body">
+
+                    <div class="stat-icon stat-blue">
                         👥
                     </div>
 
-                    <div class="stat-title">
+                    <div class="stat-label">
                         Total Attempts
                     </div>
 
-                    <div class="stat-number text-primary">
+                    <div class="stat-number">
                         {{ total_attempts }}
                     </div>
 
@@ -149,17 +354,16 @@
         </div>
 
 
-        <!-- Passed Students -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
+        <div class="col-xl col-lg-4 col-md-6 col-6">
+            <div class="stat-card bg-white">
 
-                <div class="card-body p-4">
+                <div class="card-body">
 
-                    <div class="stat-icon icon-green">
+                    <div class="stat-icon stat-green">
                         ✅
                     </div>
 
-                    <div class="stat-title">
+                    <div class="stat-label">
                         Passed Students
                     </div>
 
@@ -173,17 +377,16 @@
         </div>
 
 
-        <!-- Failed Students -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
+        <div class="col-xl col-lg-4 col-md-6 col-6">
+            <div class="stat-card bg-white">
 
-                <div class="card-body p-4">
+                <div class="card-body">
 
-                    <div class="stat-icon icon-red">
+                    <div class="stat-icon stat-red">
                         ❌
                     </div>
 
-                    <div class="stat-title">
+                    <div class="stat-label">
                         Failed Students
                     </div>
 
@@ -197,21 +400,20 @@
         </div>
 
 
-        <!-- Average Score -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
+        <div class="col-xl col-lg-6 col-md-6 col-6">
+            <div class="stat-card bg-white">
 
-                <div class="card-body p-4">
+                <div class="card-body">
 
-                    <div class="stat-icon icon-purple">
-                        📊
+                    <div class="stat-icon stat-purple">
+                        📈
                     </div>
 
-                    <div class="stat-title">
+                    <div class="stat-label">
                         Average Score
                     </div>
 
-                    <div class="stat-number text-purple">
+                    <div class="stat-number text-primary">
                         {{ "%.1f"|format(average_score) }}
                     </div>
 
@@ -221,17 +423,16 @@
         </div>
 
 
-        <!-- Highest Score -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
+        <div class="col-xl col-lg-6 col-md-12 col-12">
+            <div class="stat-card bg-white">
 
-                <div class="card-body p-4">
+                <div class="card-body">
 
-                    <div class="stat-icon icon-orange">
+                    <div class="stat-icon stat-orange">
                         🏆
                     </div>
 
-                    <div class="stat-title">
+                    <div class="stat-label">
                         Highest Score
                     </div>
 
@@ -244,132 +445,213 @@
             </div>
         </div>
 
+    </div>
 
-        <!-- Available Exams -->
-        <div class="col-lg col-md-6">
-            <div class="card stat-card shadow-sm">
 
-                <div class="card-body p-4">
+    <!-- AVAILABLE EXAMS -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <div class="stat-icon icon-blue">
-                        📝
-                    </div>
+        <h3 class="section-title mb-0">
+            📚 Available Exams
+        </h3>
 
-                    <div class="stat-title">
-                        Available Exams
-                    </div>
-
-                    <div class="stat-number text-primary">
-                        {{ available_exams }}
-                    </div>
-
-                    <a href="{{ url_for('available_exams') }}"
-                       class="btn btn-primary btn-sm mt-2">
-                        View Exams
-                    </a>
-
-                </div>
-
-            </div>
-        </div>
+        <a href="{{ url_for('available_exams') }}"
+           class="btn btn-primary btn-sm">
+            View All →
+        </a>
 
     </div>
 
 
-    <!-- ========================= -->
-    <!-- FEATURES -->
-    <!-- ========================= -->
+    <div class="row g-3">
 
-    <div class="card section-card mb-4">
+        <!-- HTML -->
+        <div class="col-lg-4 col-md-6">
 
-        <div class="card-body p-4">
+            <div class="exam-card html-card text-center">
 
-            <h3 class="mb-4">
-                🚀 Portal Features
-            </h3>
-
-            <div class="row g-4">
-
-                <div class="col-md-4">
-                    <div class="feature-box">
-
-                        <h5>📝 Online Exams</h5>
-
-                        <p class="text-muted mb-0">
-                            Conduct MCQ based online examinations
-                            in an easy and organized way.
-                        </p>
-
-                    </div>
+                <div class="exam-icon">
+                    🌐
                 </div>
 
+                <h5>
+                    HTML Fundamentals
+                </h5>
 
-                <div class="col-md-4">
-                    <div class="feature-box">
-
-                        <h5>👨‍🎓 Student Management</h5>
-
-                        <p class="text-muted mb-0">
-                            Add, update, search and manage
-                            student examination records.
-                        </p>
-
-                    </div>
-                </div>
-
-
-                <div class="col-md-4">
-                    <div class="feature-box">
-
-                        <h5>📊 Results & Scores</h5>
-
-                        <p class="text-muted mb-0">
-                            Automatically calculate scores,
-                            percentage and pass/fail status.
-                        </p>
-
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ========================= -->
-    <!-- QUICK ACTIONS -->
-    <!-- ========================= -->
-
-    <div class="card section-card">
-
-        <div class="card-body p-4">
-
-            <h3 class="mb-4">
-                ⚡ Quick Actions
-            </h3>
-
-            <div class="d-flex flex-wrap gap-3">
+                <p>
+                    Test your knowledge of HTML and web development basics.
+                </p>
 
                 <a href="{{ url_for('available_exams') }}"
-                   class="btn btn-primary quick-btn">
-                    📝 Available Exams
+                   class="btn btn-outline-danger exam-btn w-100">
+                    Start Exam →
                 </a>
 
-                <a href="{{ url_for('records') }}"
-                   class="btn btn-outline-primary quick-btn">
-                    📋 View Records
+            </div>
+
+        </div>
+
+
+        <!-- JAVA -->
+        <div class="col-lg-4 col-md-6">
+
+            <div class="exam-card java-card text-center">
+
+                <div class="exam-icon">
+                    ☕
+                </div>
+
+                <h5>
+                    Java Programming
+                </h5>
+
+                <p>
+                    Practice Java programming and object-oriented concepts.
+                </p>
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn btn-outline-danger exam-btn w-100">
+                    Start Exam →
                 </a>
 
-                {% if session.get("role") == "admin" %}
+            </div>
 
-                <a href="{{ url_for('create_exam') }}"
-                   class="btn btn-success quick-btn">
-                    ➕ Create Exam
+        </div>
+
+
+        <!-- PYTHON -->
+        <div class="col-lg-4 col-md-6">
+
+            <div class="exam-card python-card text-center">
+
+                <div class="exam-icon">
+                    🐍
+                </div>
+
+                <h5>
+                    Python Programming
+                </h5>
+
+                <p>
+                    Improve your Python programming knowledge through MCQs.
+                </p>
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn btn-outline-primary exam-btn w-100">
+                    Start Exam →
                 </a>
 
-                {% endif %}
+            </div>
+
+        </div>
+
+
+        <!-- CSS -->
+        <div class="col-lg-4 col-md-6">
+
+            <div class="exam-card css-card text-center">
+
+                <div class="exam-icon">
+                    🎨
+                </div>
+
+                <h5>
+                    CSS Fundamentals
+                </h5>
+
+                <p>
+                    Test your knowledge of CSS styling and web design.
+                </p>
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn btn-outline-primary exam-btn w-100">
+                    Start Exam →
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- SQL -->
+        <div class="col-lg-4 col-md-6">
+
+            <div class="exam-card sql-card text-center">
+
+                <div class="exam-icon">
+                    🗄️
+                </div>
+
+                <h5>
+                    SQL & Database
+                </h5>
+
+                <p>
+                    Practice SQL queries and database concepts.
+                </p>
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn btn-outline-success exam-btn w-100">
+                    Start Exam →
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- MCQ -->
+        <div class="col-lg-4 col-md-6">
+
+            <div class="exam-card mcq-card text-center">
+
+                <div class="exam-icon">
+                    📝
+                </div>
+
+                <h5>
+                    Online MCQ Tests
+                </h5>
+
+                <p>
+                    Take online tests and get your result automatically.
+                </p>
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn btn-outline-warning exam-btn w-100">
+                    Explore Exams →
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- START EXAM BANNER -->
+    <div class="start-banner">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-8">
+
+                <h4>
+                    🚀 Ready to Start Your Exam?
+                </h4>
+
+                <p class="mb-0">
+                    Choose an exam, answer the questions and check your result instantly.
+                </p>
+
+            </div>
+
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                <a href="{{ url_for('available_exams') }}"
+                   class="btn start-btn">
+                    Start Examination →
+                </a>
 
             </div>
 
@@ -380,3 +662,4 @@
 </div>
 
 {% endblock %}
+

@@ -103,7 +103,9 @@ def records():
 
     status = request.args.get("status", "")
     page = request.args.get("page", 1, type=int)
-    per_page = 10
+
+    # 5 students per page
+    per_page = 5
 
     conn = get_db()
 
@@ -122,15 +124,25 @@ def records():
     elif status == "fail":
         where_clause = " WHERE students.percentage < 40"
 
-    # Total students (according to filter)
+    # Total students according to filter
     total_students = conn.execute(
         "SELECT COUNT(*) " + query + where_clause
     ).fetchone()[0]
 
+    # Calculate total pages
     total_pages = (total_students + per_page - 1) // per_page
+
+    # Prevent invalid page numbers
+    if total_pages > 0 and page > total_pages:
+        page = total_pages
+
+    if page < 1:
+        page = 1
+
+    # Calculate offset
     offset = (page - 1) * per_page
 
-    # Student records (10 per page)
+    # Student records - 5 per page
     students = conn.execute(
         """
         SELECT
@@ -145,7 +157,7 @@ def records():
         """
         + query +
         where_clause +
-        " LIMIT ? OFFSET ?",
+        " ORDER BY students.id DESC LIMIT ? OFFSET ?",
         (per_page, offset)
     ).fetchall()
 
@@ -170,7 +182,6 @@ def records():
         failed_students=failed_students,
         tip=None
     )
-
 # student detail route
 @app.route("/student/<int:student_id>")
 def student_detail(student_id):
