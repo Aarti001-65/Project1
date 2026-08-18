@@ -1038,13 +1038,19 @@ def get_ai_tip(id):
         flash(f"No student found with ID {id}!", "danger")
         return redirect(url_for("records"))
 
+    # Personalized AI prompt
     prompt = f"""
-Name: {student['student_name']}
+You are a friendly and helpful study mentor.
+
+Student Name: {student['student_name']}
 Score: {student['score']}
 Subject: {student['subject_name']}
 
-Please provide practical study tips in a simple and encouraging tone.
-It should not be more than 2 lines.
+Give personalized study tips specifically for {student['student_name']}.
+Mention the student's name in the advice.
+Consider the student's score and subject.
+Keep the advice simple, practical, encouraging, and easy to follow.
+Give a complete study tip in 2 short sentences. Do not stop mid-sentence.
 """
 
     # Create Groq client
@@ -1052,20 +1058,26 @@ It should not be more than 2 lines.
 
     # Generate AI response
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    )
+    model="openai/gpt-oss-20b",
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ],
+    temperature=0.6,
+    max_completion_tokens=300,
+    include_reasoning=False
+)
 
-    tip = response.choices[0].message.content
+    tip = response.choices[0].message.content.strip()
+    print("AI RESPONSE:", repr(response.choices[0].message.content))
+    print("AI TIP:", repr(tip))
+
 
     # Pagination
     page = 1
-    per_page =5 
+    per_page = 5
 
     # Total students
     total_students = conn.execute(
